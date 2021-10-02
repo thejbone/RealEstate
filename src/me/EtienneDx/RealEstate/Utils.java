@@ -1,16 +1,19 @@
 package me.EtienneDx.RealEstate;
 
 import java.time.Duration;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.ClaimPermission;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import me.ryanhamshire.GriefPrevention.PlayerData;
+import com.griefdefender.api.GriefDefender;
+import com.griefdefender.api.claim.Claim;
+import com.griefdefender.api.claim.ClaimResult;
+import com.griefdefender.api.claim.TrustTypes;
+import com.griefdefender.api.data.PlayerData;
+
 import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.EconomyResponse;
 
@@ -101,12 +104,12 @@ public class Utils
 		// if transfert is true, the seller will lose the blocks he had
 		// and the buyer will get them
 		// (that means the buyer will keep the same amount of remaining blocks after the transaction)
-		if(claim.parent == null && RealEstate.instance.config.cfgTransferClaimBlocks)
+		if(claim.getParent() == null && RealEstate.instance.config.cfgTransferClaimBlocks)
 		{
-			PlayerData buyerData = GriefPrevention.instance.dataStore.getPlayerData(buyer);
+			final PlayerData buyerData = GriefDefender.getCore().getPlayerData(claim.getWorldUniqueId(), buyer);
 			if(seller != null)
 			{
-				PlayerData sellerData = GriefPrevention.instance.dataStore.getPlayerData(seller);
+				final PlayerData sellerData = GriefDefender.getCore().getPlayerData(claim.getWorldUniqueId(), seller);
 				
 				// the seller has to provide the blocks
 				sellerData.setBonusClaimBlocks(sellerData.getBonusClaimBlocks() - claim.getArea());
@@ -122,30 +125,21 @@ public class Utils
 		}
 		
 		// start to change owner
-		if(claim.parent == null)
-			for(Claim child : claim.children)
-			{
-				child.clearPermissions();
-				child.managers.clear();
-			}
-		claim.clearPermissions();
-		
-		try
+        for(Claim child : claim.getChildren(true))
+        {
+            if (child.getOwnerUniqueId().equals(claim.getOwnerUniqueId())) {
+                child.removeUserTrust(seller, TrustTypes.NONE);
+            }
+        }
+        claim.removeUserTrust(seller, TrustTypes.NONE);
+		final ClaimResult result = claim.transferOwner(buyer);
+		if (!result.successful())// error occurs when trying to change subclaim owner
 		{
-			if(claim.parent == null)
-				GriefPrevention.instance.dataStore.changeClaimOwner(claim, buyer);
-			else
-			{
-				claim.setPermission(buyer.toString(), ClaimPermission.Build);
+			final Player player = Bukkit.getPlayer(buyer);
+			if (player != null) {
+			    player.sendMessage("Could not transfer claim! Result was '" + result.getResultType().toString() + "'.");
 			}
 		}
-		catch (Exception e)// error occurs when trying to change subclaim owner
-		{
-			e.printStackTrace();
-			return;
-		}
-		GriefPrevention.instance.dataStore.saveClaim(claim);
-					
 	}
 	
 	public static String getSignString(String str)

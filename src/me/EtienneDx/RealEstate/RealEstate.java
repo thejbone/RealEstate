@@ -11,6 +11,8 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.earth2me.essentials.Essentials;
+import com.griefdefender.api.GriefDefender;
+import com.griefdefender.api.claim.Claim;
 
 import co.aikar.commands.BukkitCommandManager;
 import co.aikar.commands.ConditionFailedException;
@@ -21,8 +23,6 @@ import me.EtienneDx.RealEstate.Transactions.ClaimSell;
 import me.EtienneDx.RealEstate.Transactions.ExitOffer;
 import me.EtienneDx.RealEstate.Transactions.Transaction;
 import me.EtienneDx.RealEstate.Transactions.TransactionsStore;
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
@@ -101,15 +101,15 @@ public class RealEstate extends JavaPlugin
         manager.enableUnstableAPI("help");
         registerConditions();
         manager.registerCommand(new RECommand());
-        
-        GriefPrevention.addonPlugins.add(new GP_RealEstateHook());
+        new GD_RealEstateHook();
 	}
 
     private void registerConditions()
     {
         manager.getCommandConditions().addCondition("inClaim", (context) -> {
+            final Claim claim = GriefDefender.getCore().getClaimAt(context.getIssuer().getPlayer().getLocation());
         	if(context.getIssuer().isPlayer() && 
-        			GriefPrevention.instance.dataStore.getClaimAt(context.getIssuer().getPlayer().getLocation(), false, null) != null)
+        			claim == null || !claim.isWilderness())
         	{
         		return;
         	}
@@ -120,12 +120,12 @@ public class RealEstate extends JavaPlugin
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorPlayerOnly);
         	}
-        	Claim c = GriefPrevention.instance.dataStore.getClaimAt(context.getIssuer().getPlayer().getLocation(), false, null);
-        	if(c == null)
+        	final Claim claim = GriefDefender.getCore().getClaimAt(context.getIssuer().getPlayer().getLocation());
+        	if(claim == null || claim.isWilderness())
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorOutOfClaim);
         	}
-        	Transaction tr = transactionsStore.getTransaction(c);
+        	Transaction tr = transactionsStore.getTransaction(claim);
         	if(tr == null)
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorNoOngoingTransaction);
@@ -136,12 +136,12 @@ public class RealEstate extends JavaPlugin
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorPlayerOnly);
         	}
-        	Claim c = GriefPrevention.instance.dataStore.getClaimAt(context.getIssuer().getPlayer().getLocation(), false, null);
-        	if(c == null)
+        	final Claim claim = GriefDefender.getCore().getClaimAt(context.getIssuer().getPlayer().getLocation());
+        	if(claim == null || claim.isWilderness())
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorOutOfClaim);
         	}
-        	Transaction tr = transactionsStore.getTransaction(c);
+        	Transaction tr = transactionsStore.getTransaction(claim);
         	if(tr == null)
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorNotRentNorLease);
@@ -156,12 +156,12 @@ public class RealEstate extends JavaPlugin
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorPlayerOnly);
         	}
-        	Claim c = GriefPrevention.instance.dataStore.getClaimAt(context.getIssuer().getPlayer().getLocation(), false, null);
-        	if(c == null)
+        	final Claim claim = GriefDefender.getCore().getClaimAt(context.getIssuer().getPlayer().getLocation());
+        	if(claim == null || claim.isWilderness())
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorOutOfClaim);
         	}
-        	Transaction tr = transactionsStore.getTransaction(c);
+        	Transaction tr = transactionsStore.getTransaction(claim);
         	if(tr == null || !(tr instanceof BoughtTransaction))
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorNotRentNorLease);
@@ -172,12 +172,12 @@ public class RealEstate extends JavaPlugin
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorPlayerOnly);
         	}
-        	Claim c = GriefPrevention.instance.dataStore.getClaimAt(context.getIssuer().getPlayer().getLocation(), false, null);
-        	if(c == null)
+        	final Claim claim = GriefDefender.getCore().getClaimAt(context.getIssuer().getPlayer().getLocation());
+        	if(claim == null || claim.isWilderness())
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorOutOfClaim);
         	}
-        	Transaction tr = transactionsStore.getTransaction(c);
+        	Transaction tr = transactionsStore.getTransaction(claim);
         	if(tr == null)
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorNoOngoingTransaction);
@@ -188,7 +188,7 @@ public class RealEstate extends JavaPlugin
         	}
         	if((((BoughtTransaction)tr).buyer != null && ((BoughtTransaction)tr).buyer.equals(context.getIssuer().getPlayer().getUniqueId())) || 
         			(tr.getOwner() != null && (tr.getOwner().equals(context.getIssuer().getPlayer().getUniqueId()))) || 
-        			(c.isAdminClaim() && RealEstate.perms.has(context.getIssuer().getPlayer(), "realestate.admin")))
+        			(claim.isAdminClaim() && RealEstate.perms.has(context.getIssuer().getPlayer(), "realestate.admin")))
         	{
         		return;
         	}
@@ -199,12 +199,12 @@ public class RealEstate extends JavaPlugin
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorPlayerOnly);
         	}
-        	Claim c = GriefPrevention.instance.dataStore.getClaimAt(context.getIssuer().getPlayer().getLocation(), false, null);
-        	if(c == null)
+        	final Claim claim = GriefDefender.getCore().getClaimAt(context.getIssuer().getPlayer().getLocation());
+        	if(claim == null || claim.isWilderness())
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorOutOfClaim);
         	}
-        	Transaction tr = transactionsStore.getTransaction(c);
+        	Transaction tr = transactionsStore.getTransaction(claim);
         	if(tr == null)
         	{
         		throw new ConditionFailedException(config.chatPrefix + messages.msgErrorNoOngoingTransaction);
@@ -215,7 +215,7 @@ public class RealEstate extends JavaPlugin
         	}
         	if((((ClaimRent)tr).buyer != null && ((ClaimRent)tr).buyer.equals(context.getIssuer().getPlayer().getUniqueId())) || 
         			(tr.getOwner() != null && (tr.getOwner().equals(context.getIssuer().getPlayer().getUniqueId()))) || 
-        			(c.isAdminClaim() && RealEstate.perms.has(context.getIssuer().getPlayer(), "realestate.admin")))
+        			(claim.isAdminClaim() && RealEstate.perms.has(context.getIssuer().getPlayer(), "realestate.admin")))
         	{
         		return;
         	}

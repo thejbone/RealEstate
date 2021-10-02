@@ -11,6 +11,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.earth2me.essentials.User;
+import com.griefdefender.api.GriefDefender;
+import com.griefdefender.api.claim.Claim;
+import com.griefdefender.api.claim.TrustTypes;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.CommandHelp;
@@ -28,8 +31,6 @@ import me.EtienneDx.RealEstate.Transactions.BoughtTransaction;
 import me.EtienneDx.RealEstate.Transactions.ClaimRent;
 import me.EtienneDx.RealEstate.Transactions.ExitOffer;
 import me.EtienneDx.RealEstate.Transactions.Transaction;
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 
 @CommandAlias("re|realestate")
 public class RECommand extends BaseCommand
@@ -40,10 +41,10 @@ public class RECommand extends BaseCommand
 	public static void info(Player player)
 	{
 		if(RealEstate.transactionsStore.anyTransaction(
-				GriefPrevention.instance.dataStore.getClaimAt(((Player)player).getLocation(), false, null)))
+				GriefDefender.getCore().getClaimAt(player.getLocation())))
 		{
 			Transaction tr = RealEstate.transactionsStore.getTransaction(
-					GriefPrevention.instance.dataStore.getClaimAt(((Player)player).getLocation(), false, null));
+					GriefDefender.getCore().getClaimAt(player.getLocation()));
 			tr.preview((Player)player);
 		}
 		else
@@ -154,9 +155,9 @@ public class RECommand extends BaseCommand
 	public static void renewRent(Player player, @Optional String newStatus)
 	{
 		Location loc = player.getLocation();
-		Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
+		final Claim claim = GriefDefender.getCore().getClaimAt(loc);
 		ClaimRent cr = (ClaimRent)RealEstate.transactionsStore.getTransaction(claim);
-		String claimType = claim.parent == null ? "claim" : "subclaim";
+		String claimType = claim.getParent() == null ? "claim" : "subclaim";
 		if(!RealEstate.instance.config.cfgEnableAutoRenew)
 		{
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Automatic renew is disabled!");
@@ -242,7 +243,7 @@ public class RECommand extends BaseCommand
 			{
 				OfflinePlayer otherP = Bukkit.getOfflinePlayer(other);
 				Location loc = player.getLocation();
-				String claimType = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null).parent == null ? "claim" : "subclaim";
+				String claimType = GriefDefender.getCore().getClaimAt(loc).getParent() == null ? "claim" : "subclaim";
 				if(otherP.isOnline())
 				{
 					((Player)otherP).sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.GREEN + player.getName() + 
@@ -266,9 +267,9 @@ public class RECommand extends BaseCommand
 		public void accept(Player player)
 		{
 			Location loc = player.getLocation();
-			Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
+			final Claim claim = GriefDefender.getCore().getClaimAt(loc);
 			BoughtTransaction bt = (BoughtTransaction)RealEstate.transactionsStore.getTransaction(claim);
-			String claimType = claim.parent == null ? "claim" : "subclaim";
+			String claimType = claim.getParent() == null ? "claim" : "subclaim";
 			if(bt.exitOffer == null)
 			{
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
@@ -304,9 +305,7 @@ public class RECommand extends BaseCommand
 		        	}
 				}
 				bt.exitOffer = null;
-				claim.dropPermission(bt.buyer.toString());
-				claim.managers.remove(bt.buyer.toString());
-				GriefPrevention.instance.dataStore.saveClaim(claim);
+		        claim.removeUserTrust(bt.buyer, TrustTypes.NONE);
 				bt.buyer = null;
 				bt.update();// eventual cancel is contained in here
 			}
@@ -318,9 +317,9 @@ public class RECommand extends BaseCommand
 		public void refuse(Player player)
 		{
 			Location loc = player.getLocation();
-			Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
+			final Claim claim = GriefDefender.getCore().getClaimAt(loc);
 			BoughtTransaction bt = (BoughtTransaction)RealEstate.transactionsStore.getTransaction(claim);
-			String claimType = claim.parent == null ? "claim" : "subclaim";
+			String claimType = claim.getParent() == null ? "claim" : "subclaim";
 			if(bt.exitOffer == null)
 			{
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
@@ -364,9 +363,9 @@ public class RECommand extends BaseCommand
 		public void cancel(Player player)
 		{
 			Location loc = player.getLocation();
-			Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
+			final Claim claim = GriefDefender.getCore().getClaimAt(loc);
 			BoughtTransaction bt = (BoughtTransaction)RealEstate.transactionsStore.getTransaction(claim);
-			String claimType = claim.parent == null ? "claim" : "subclaim";
+			String claimType = claim.getParent() == null ? "claim" : "subclaim";
 			if(bt.exitOffer.offerBy.equals(player.getUniqueId()))
 			{
 				bt.exitOffer = null;
@@ -407,7 +406,7 @@ public class RECommand extends BaseCommand
 	public static void cancelTransaction(Player player)
 	{
 		Location loc = player.getLocation();
-		Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
+		final Claim claim = GriefDefender.getCore().getClaimAt(loc);
 		Transaction t = RealEstate.transactionsStore.getTransaction(claim);
 		t.tryCancelTransaction(player, true);
 	}

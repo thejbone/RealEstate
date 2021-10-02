@@ -12,14 +12,17 @@ import java.util.Iterator;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import com.griefdefender.api.GriefDefender;
+import com.griefdefender.api.claim.Claim;
+
 import me.EtienneDx.RealEstate.RealEstate;
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.ChatColor;
 
 public class TransactionsStore
@@ -131,19 +134,19 @@ public class TransactionsStore
 	public boolean anyTransaction(Claim claim)
 	{
 		return claim != null && 
-				(claimSell.containsKey(claim.getID().toString()) || 
-						claimRent.containsKey(claim.getID().toString()) || 
-						claimLease.containsKey(claim.getID().toString()));
+				(claimSell.containsKey(claim.getUniqueId().toString()) || 
+						claimRent.containsKey(claim.getUniqueId().toString()) || 
+						claimLease.containsKey(claim.getUniqueId().toString()));
 	}
 
 	public Transaction getTransaction(Claim claim)
 	{
-		if(claimSell.containsKey(claim.getID().toString()))
-			return claimSell.get(claim.getID().toString());
-		if(claimRent.containsKey(claim.getID().toString()))
-			return claimRent.get(claim.getID().toString());
-		if(claimLease.containsKey(claim.getID().toString()))
-			return claimLease.get(claim.getID().toString());
+		if(claimSell.containsKey(claim.getUniqueId().toString()))
+			return claimSell.get(claim.getUniqueId().toString());
+		if(claimRent.containsKey(claim.getUniqueId().toString()))
+			return claimRent.get(claim.getUniqueId().toString());
+		if(claimLease.containsKey(claim.getUniqueId().toString()))
+			return claimLease.get(claim.getUniqueId().toString());
 		return null;
 	}
 
@@ -185,22 +188,23 @@ public class TransactionsStore
 	public void sell(Claim claim, Player player, double price, Location sign)
 	{
 		ClaimSell cs = new ClaimSell(claim, claim.isAdminClaim() ? null : player, price, sign);
-		claimSell.put(claim.getID().toString(), cs);
+		claimSell.put(claim.getUniqueId().toString(), cs);
 		cs.update();
 		saveData();
 		
+        final World world = Bukkit.getWorld(claim.getWorldUniqueId());
 		RealEstate.instance.addLogEntry("[" + this.dateFormat.format(this.date) + "] " + (player == null ? "The Server" : player.getName()) + 
-				" has made " + (claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for sale at " +
-                "[" + claim.getGreaterBoundaryCorner().getWorld() + ", " +
-                "X: " + claim.getGreaterBoundaryCorner().getBlockX() + ", " +
-                "Y: " + claim.getGreaterBoundaryCorner().getBlockY() + ", " +
-                "Z: " + claim.getGreaterBoundaryCorner().getBlockZ() + "] " +
+				" has made " + (claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for sale at " +
+                "[" + world.getName() + ", " +
+                "X: " + claim.getGreaterBoundaryCorner().getX() + ", " +
+                "Y: " + claim.getGreaterBoundaryCorner().getY() + ", " +
+                "Z: " + claim.getGreaterBoundaryCorner().getZ() + "] " +
                 "Price: " + price + " " + RealEstate.econ.currencyNamePlural());
 		
 		if(player != null)
 		{
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "You have successfully created " + 
-					(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " sale for " + 
+					(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " sale for " + 
 					ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural());
 		}
 		if(RealEstate.instance.config.cfgBroadcastSell)
@@ -211,7 +215,7 @@ public class TransactionsStore
 				{
 					p.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.DARK_GREEN + (player == null ? "The Server" : player.getDisplayName()) + 
 							ChatColor.AQUA + " has put " + 
-							(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for sale for " + 
+							(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for sale for " + 
 							ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural());
 				}
 			}
@@ -221,22 +225,23 @@ public class TransactionsStore
 	public void rent(Claim claim, Player player, double price, Location sign, int duration, int rentPeriods, boolean buildTrust)
 	{
 		ClaimRent cr = new ClaimRent(claim, claim.isAdminClaim() ? null : player, price, sign, duration, rentPeriods, buildTrust);
-		claimRent.put(claim.getID().toString(), cr);
+		claimRent.put(claim.getUniqueId().toString(), cr);
 		cr.update();
 		saveData();
 		
+		final World world = Bukkit.getWorld(claim.getWorldUniqueId());
 		RealEstate.instance.addLogEntry("[" + this.dateFormat.format(this.date) + "] " + (player == null ? "The Server" : player.getName()) + 
-				" has made " + (claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for" + (buildTrust ? "" : " container") + " rent at " +
-				"[" + claim.getLesserBoundaryCorner().getWorld() + ", " +
-                "X: " + claim.getLesserBoundaryCorner().getBlockX() + ", " +
-                "Y: " + claim.getLesserBoundaryCorner().getBlockY() + ", " +
-                "Z: " + claim.getLesserBoundaryCorner().getBlockZ() + "] " +
+				" has made " + (claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for" + (buildTrust ? "" : " container") + " rent at " +
+				"[" + world.getName() + ", " +
+                "X: " + claim.getLesserBoundaryCorner().getX() + ", " +
+                "Y: " + claim.getLesserBoundaryCorner().getY() + ", " +
+                "Z: " + claim.getLesserBoundaryCorner().getZ() + "] " +
                 "Price: " + price + " " + RealEstate.econ.currencyNamePlural());
 		
 		if(player != null)
 		{
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "You have successfully put " + 
-					(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for" + (buildTrust ? "" : " container") + " rent for " + 
+					(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for" + (buildTrust ? "" : " container") + " rent for " + 
 					ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural());
 		}
 		if(RealEstate.instance.config.cfgBroadcastSell)
@@ -247,7 +252,7 @@ public class TransactionsStore
 				{
 					p.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.DARK_GREEN + (player == null ? "The Server" : player.getDisplayName()) + 
 							ChatColor.AQUA + " has put " + 
-							(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for" + (buildTrust ? "" : " container") + " rent for " + 
+							(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for" + (buildTrust ? "" : " container") + " rent for " + 
 							ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural());
 				}
 			}
@@ -257,23 +262,24 @@ public class TransactionsStore
 	public void lease(Claim claim, Player player, double price, Location sign, int frequency, int paymentsCount)
 	{
 		ClaimLease cl = new ClaimLease(claim, claim.isAdminClaim() ? null : player, price, sign, frequency, paymentsCount);
-		claimLease.put(claim.getID().toString(), cl);
+		claimLease.put(claim.getUniqueId().toString(), cl);
 		cl.update();
 		saveData();
 		
+		final World world = Bukkit.getWorld(claim.getWorldUniqueId());
 		RealEstate.instance.addLogEntry("[" + this.dateFormat.format(this.date) + "] " + (player == null ? "The Server" : player.getName()) + 
-				" has made " + (claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for lease at " +
-				"[" + claim.getLesserBoundaryCorner().getWorld() + ", " +
-                "X: " + claim.getLesserBoundaryCorner().getBlockX() + ", " +
-                "Y: " + claim.getLesserBoundaryCorner().getBlockY() + ", " +
-                "Z: " + claim.getLesserBoundaryCorner().getBlockZ() + "] " +
+				" has made " + (claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for lease at " +
+				"[" + world.getName() + ", " +
+                "X: " + claim.getLesserBoundaryCorner().getX() + ", " +
+                "Y: " + claim.getLesserBoundaryCorner().getY() + ", " +
+                "Z: " + claim.getLesserBoundaryCorner().getZ() + "] " +
                 "Payments Count : " + paymentsCount + " " + 
                 "Price: " + price + " " + RealEstate.econ.currencyNamePlural());
 		
 		if(player != null)
 		{
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "You have successfully put " + 
-					(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for lease for " + 
+					(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for lease for " + 
 					ChatColor.GREEN + paymentsCount + ChatColor.AQUA + " payments of " +
 					ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural());
 		}
@@ -285,7 +291,7 @@ public class TransactionsStore
 				{
 					p.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.DARK_GREEN + (player == null ? "The Server" : player.getDisplayName()) + 
 							ChatColor.AQUA + " has put " + 
-							(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.parent == null ? "claim" : "subclaim") + " for lease for " + 
+							(claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for lease for " + 
 							ChatColor.GREEN + paymentsCount + ChatColor.AQUA + " payments of " +
 							ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural());
 				}
@@ -296,7 +302,7 @@ public class TransactionsStore
 	public Transaction getTransaction(Player player)
 	{
 		if(player == null) return null;
-		Claim c = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, null);
+		final Claim c = GriefDefender.getCore().getClaimAt(player.getLocation());
 		return getTransaction(c);
 	}
 }

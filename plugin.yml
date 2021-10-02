@@ -2,7 +2,7 @@ name: RealEstate
 main: me.EtienneDx.RealEstate.RealEstate
 version: ${project.version}
 authors: [EtienneDx, DmitryRendov]
-depend: [GriefPrevention, Vault]
+depend: [GriefDefender, Vault]
 api-version: "1.15"
 
 commands:

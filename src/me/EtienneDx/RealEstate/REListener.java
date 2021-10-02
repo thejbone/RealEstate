@@ -16,9 +16,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.PluginManager;
 
+import com.griefdefender.api.GriefDefender;
+import com.griefdefender.api.claim.Claim;
+
 import me.EtienneDx.RealEstate.Transactions.Transaction;
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 
 public class REListener implements Listener
 {
@@ -41,8 +42,8 @@ public class REListener implements Listener
 			Player player = event.getPlayer();
 			Location loc = event.getBlock().getLocation();
 
-			Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
-			if(claim == null)// must have something to sell
+			final Claim claim = GriefDefender.getCore().getClaimAt(loc);
+			if(claim == null || claim.isWilderness())// must have something to sell
 			{
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "The sign you placed is not inside a claim!");
 				event.setCancelled(true);
@@ -56,23 +57,25 @@ public class REListener implements Listener
 				event.getBlock().breakNaturally();
 				return;
 			}
-			if(RealEstate.transactionsStore.anyTransaction(claim.parent))
+			if(RealEstate.transactionsStore.anyTransaction(claim.getParent()))
 			{
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "The parent claim already has an ongoing transaction!");
 				event.setCancelled(true);
 				event.getBlock().breakNaturally();
 				return;
 			}
-			for(Claim c : claim.children)
+			for(Claim c : claim.getChildren(true))
 			{
-				if(RealEstate.transactionsStore.anyTransaction(c))
-				{
-					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
-							"A subclaim of this claim already has an ongoing transaction!");
-					event.setCancelled(true);
-					event.getBlock().breakNaturally();
-					return;
-				}
+			    if (c.getOwnerUniqueId().equals(claim.getOwnerUniqueId())) {
+    				if(RealEstate.transactionsStore.anyTransaction(c))
+    				{
+    					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
+    							"A subclaim of this claim already has an ongoing transaction!");
+    					event.setCancelled(true);
+    					event.getBlock().breakNaturally();
+    					return;
+    				}
+			    }
 			}
 
 			// empty is considered a wish to sell
@@ -86,7 +89,7 @@ public class REListener implements Listener
 					return;
 				}
 
-				String type = claim.parent == null ? "claim" : "subclaim";
+				String type = claim.getParent() == null ? "claim" : "subclaim";
 				if(!RealEstate.perms.has(player, "realestate." + type + ".sell"))
 				{
 					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You don't have the permission to sell " + type + "s!");
@@ -133,7 +136,7 @@ public class REListener implements Listener
 						return;
 					}
 				}
-				else if(type.equals("claim") && !player.getUniqueId().equals(claim.ownerID))// only the owner may sell his claim
+				else if(type.equals("claim") && !player.getUniqueId().equals(claim.getOwnerUniqueId()))// only the owner may sell his claim
 				{
 					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You can only sell claims you own!");
 					event.setCancelled(true);
@@ -155,7 +158,7 @@ public class REListener implements Listener
 					event.getBlock().breakNaturally();
 					return;
 				}
-				String type = claim.parent == null ? "claim" : "subclaim";
+				String type = claim.getParent() == null ? "claim" : "subclaim";
 				if(!RealEstate.perms.has(player, "realestate." + type + ".rent"))
 				{
 					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You don't have the permission to rent " + type + "s!");
@@ -245,7 +248,7 @@ public class REListener implements Listener
 						return;
 					}
 				}
-				else if(type.equals("claim") && !player.getUniqueId().equals(claim.ownerID))// only the owner may sell his claim
+				else if(type.equals("claim") && !player.getUniqueId().equals(claim.getOwnerUniqueId()))// only the owner may sell his claim
 				{
 					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You can only rent claims you own!");
 					event.setCancelled(true);
@@ -267,7 +270,7 @@ public class REListener implements Listener
 					event.getBlock().breakNaturally();
 					return;
 				}
-				String type = claim.parent == null ? "claim" : "subclaim";
+				String type = claim.getParent() == null ? "claim" : "subclaim";
 				if(!RealEstate.perms.has(player, "realestate." + type + ".lease"))
 				{
 					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You don't have the permission to lease " + type + "s!");
@@ -347,7 +350,7 @@ public class REListener implements Listener
 						return;
 					}
 				}
-				else if(type.equals("claim") && !player.getUniqueId().equals(claim.ownerID))// only the owner may sell his claim
+				else if(type.equals("claim") && !player.getUniqueId().equals(claim.getOwnerUniqueId()))// only the owner may sell his claim
 				{
 					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You can only lease claims you own!");
 					event.setCancelled(true);
@@ -398,7 +401,7 @@ public class REListener implements Listener
 			if(ChatColor.stripColor(sign.getLine(0)).equalsIgnoreCase(ChatColor.stripColor(RealEstate.instance.config.cfgSignsHeader)))
 			{
 				Player player = event.getPlayer();
-				Claim claim = GriefPrevention.instance.dataStore.getClaimAt(event.getClickedBlock().getLocation(), false, null);
+				final Claim claim = GriefDefender.getCore().getClaimAt(event.getClickedBlock().getLocation());
 
 				if(!RealEstate.transactionsStore.anyTransaction(claim))
 				{
@@ -423,7 +426,7 @@ public class REListener implements Listener
 	{
 		if(event.getBlock().getState() instanceof Sign)
 		{
-			Claim claim = GriefPrevention.instance.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
+			final Claim claim = GriefDefender.getCore().getClaimAt(event.getBlock().getLocation());
 			if(claim != null)
 			{
 				Transaction tr = RealEstate.transactionsStore.getTransaction(claim);

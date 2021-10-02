@@ -10,17 +10,19 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.block.Sign;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.earth2me.essentials.User;
+import com.griefdefender.api.GriefDefender;
+import com.griefdefender.api.claim.Claim;
+import com.griefdefender.api.claim.TrustType;
+import com.griefdefender.api.claim.TrustTypes;
 
 import me.EtienneDx.RealEstate.RealEstate;
 import me.EtienneDx.RealEstate.Utils;
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.ClaimPermission;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.ChatColor;
 
 public class ClaimRent extends BoughtTransaction
@@ -156,15 +158,12 @@ public class ClaimRent extends BoughtTransaction
 
 	private void unRent(boolean msgBuyer)
 	{
-		Claim claim = GriefPrevention.instance.dataStore.getClaimAt(sign, false, null);
-		claim.dropPermission(buyer.toString());
-		claim.managers.remove(buyer.toString());
-		claim.setSubclaimRestrictions(false);
-		GriefPrevention.instance.dataStore.saveClaim(claim);
+		final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+		claim.removeUserTrust(buyer, TrustTypes.NONE);
 		if(msgBuyer && Bukkit.getOfflinePlayer(buyer).isOnline() && RealEstate.instance.config.cfgMessageBuyer)
 		{
 			Bukkit.getPlayer(buyer).sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + 
-					"The rent for the " + (claim.parent == null ? "claim" : "subclaim") + " at " + ChatColor.BLUE + "[" + 
+					"The rent for the " + (claim.getParent() == null ? "claim" : "subclaim") + " at " + ChatColor.BLUE + "[" + 
 					sign.getWorld().getName() + ", X: " + sign.getBlockX() + ", Y: " + 
 					sign.getBlockY() + ", Z: " + sign.getBlockZ() + "]" + ChatColor.AQUA + " is now over, your access has been revoked.");
 		}
@@ -180,7 +179,7 @@ public class ClaimRent extends BoughtTransaction
 		OfflinePlayer buyerPlayer = Bukkit.getOfflinePlayer(this.buyer);
 		OfflinePlayer seller = owner == null ? null : Bukkit.getOfflinePlayer(owner);
 		
-		String claimType = GriefPrevention.instance.dataStore.getClaimAt(sign, false, null).parent == null ? "claim" : "subclaim";
+		String claimType = GriefDefender.getCore().getClaimAt(sign).getParent() == null ? "claim" : "subclaim";
 		
 		if((autoRenew || periodCount < maxPeriod) && Utils.makePayment(owner, this.buyer, price, false, false))
 		{
@@ -266,9 +265,9 @@ public class ClaimRent extends BoughtTransaction
 			}
 			else
 			{
-				Claim claim = GriefPrevention.instance.dataStore.getClaimAt(sign, false, null);
+				final Claim claim = GriefDefender.getCore().getClaimAt(sign);
 				if(p != null)
-					p.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This " + (claim.parent == null ? "claim" : "subclaim") + 
+					p.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This " + (claim.getParent() == null ? "claim" : "subclaim") + 
 	            		" is currently rented, you can't cancel the transaction!");
 	            return false;
 			}
@@ -283,21 +282,21 @@ public class ClaimRent extends BoughtTransaction
 	@Override
 	public void interact(Player player)
 	{
-		Claim claim = GriefPrevention.instance.dataStore.getClaimAt(sign, false, null);// getting by id creates errors for subclaims
-		if(claim == null)
+		final Claim claim = GriefDefender.getCore().getClaimAt(sign);// getting by id creates errors for subclaims
+		if(claim == null || claim.isWilderness())
 		{
             player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This claim does not exist!");
             RealEstate.transactionsStore.cancelTransaction(claim);
             return;
 		}
-		String claimType = claim.parent == null ? "claim" : "subclaim";
+		String claimType = claim.getParent() == null ? "claim" : "subclaim";
 		
 		if (owner != null && owner.equals(player.getUniqueId()))
         {
             player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You already own this " + claimType + "!");
             return;
         }
-		if(claim.parent == null && owner != null && !owner.equals(claim.ownerID))
+		if(claim.getParent() == null && owner != null && !owner.equals(claim.getOwnerUniqueId()))
 		{
             player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + Bukkit.getOfflinePlayer(owner).getName() + 
             		" does not have the right to rent this " + claimType + "!");
@@ -328,11 +327,8 @@ public class ClaimRent extends BoughtTransaction
 			buyer = player.getUniqueId();
 			startDate = LocalDateTime.now();
 			autoRenew = false;
-			claim.setPermission(buyer.toString(), buildTrust ? ClaimPermission.Build : ClaimPermission.Inventory);
-			claim.allowGrantPermission(player);
-			claim.managers.add(player.getUniqueId().toString());
-			claim.setSubclaimRestrictions(true);
-			GriefPrevention.instance.dataStore.saveClaim(claim);
+			TrustType trustType = buildTrust ? TrustTypes.BUILDER : TrustTypes.CONTAINER;
+			claim.addUserTrust(buyer, trustType);
 			update();
 			RealEstate.transactionsStore.saveData();
 			
@@ -378,11 +374,11 @@ public class ClaimRent extends BoughtTransaction
 	@Override
 	public void preview(Player player)
 	{
-		Claim claim = GriefPrevention.instance.dataStore.getClaimAt(sign, false, null);
+		final Claim claim = GriefDefender.getCore().getClaimAt(sign);
 		String msg = "";
 		if(player.hasPermission("realestate.info"))
 		{
-			String claimType = claim.parent == null ? "claim" : "subclaim";
+			String claimType = claim.getParent() == null ? "claim" : "subclaim";
 			msg = ChatColor.BLUE + "-----= " + ChatColor.WHITE + "[" + ChatColor.GOLD + "RealEstate Rent Info" + ChatColor.WHITE + "]" + 
 					ChatColor.BLUE + " =-----\n";
 			if(buyer == null)
@@ -444,12 +440,14 @@ public class ClaimRent extends BoughtTransaction
 	@Override
 	public void msgInfo(CommandSender cs)
 	{
-		cs.sendMessage(ChatColor.DARK_GREEN + "" + GriefPrevention.instance.dataStore.getClaim(claimId).getArea() + 
-				ChatColor.AQUA + " blocks to " + ChatColor.DARK_GREEN + "Rent " + ChatColor.AQUA + "at " + ChatColor.DARK_GREEN + 
-				"[" + GriefPrevention.instance.dataStore.getClaim(claimId).getLesserBoundaryCorner().getWorld().getName() + ", " +
-                "X: " + GriefPrevention.instance.dataStore.getClaim(claimId).getLesserBoundaryCorner().getBlockX() + ", " +
-                "Y: " + GriefPrevention.instance.dataStore.getClaim(claimId).getLesserBoundaryCorner().getBlockY() + ", " +
-                "Z: " + GriefPrevention.instance.dataStore.getClaim(claimId).getLesserBoundaryCorner().getBlockZ() + "] " + ChatColor.AQUA + "for " + 
+        final Claim claim = GriefDefender.getCore().getClaim(claimId);
+        final World world = Bukkit.getWorld(claim.getWorldUniqueId());
+        cs.sendMessage(ChatColor.DARK_GREEN + "" + claim.getArea() + 
+                ChatColor.AQUA + " blocks to " + ChatColor.DARK_GREEN + "Lease " + ChatColor.AQUA + "at " + ChatColor.DARK_GREEN + 
+                "[" + world.getName() + ", " +
+                "X: " + claim.getLesserBoundaryCorner().getX() + ", " +
+                "Y: " + claim.getLesserBoundaryCorner().getY() + ", " +
+                "Z: " + claim.getLesserBoundaryCorner().getZ() + "] " + ChatColor.AQUA + "for " + 
                 ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural() + ChatColor.AQUA + " per period of " + ChatColor.GREEN + 
                 Utils.getTime(duration, Duration.ZERO, false));
 	}

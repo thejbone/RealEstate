@@ -7,8 +7,9 @@ import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
+import com.griefdefender.api.claim.Claim;
+
 import me.EtienneDx.RealEstate.RealEstate;
-import me.ryanhamshire.GriefPrevention.Claim;
 
 public abstract class BoughtTransaction extends ClaimTransaction
 {
