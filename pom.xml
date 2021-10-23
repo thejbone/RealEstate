@@ -54,7 +54,7 @@
                         </relocation>
                         <relocation>
                             <pattern>com.flowpowered</pattern>
-                            <shadedPattern>com.griefdefender.lib.kyori.flowpowered</shadedPattern>
+                            <shadedPattern>com.griefdefender.lib.flowpowered</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
