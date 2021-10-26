@@ -47,7 +47,7 @@ public abstract class ClaimTransaction implements ConfigurationSerializable, Tra
 	{
 		Map<String, Object> map = new HashMap<>();
 		
-		map.put("claimId", this.claimId);
+		map.put("claimId", this.claimId.toString());
 		if(owner != null)
 			map.put("owner", owner.toString());
 		map.put("price", this.price);
