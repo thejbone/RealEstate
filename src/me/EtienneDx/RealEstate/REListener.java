@@ -146,7 +146,7 @@ public class REListener implements Listener
 
 				// we should be good to sell it now
 				event.setCancelled(true);// need to cancel the event, so we can update the sign elsewhere
-				RealEstate.transactionsStore.sell(claim, claim.isAdminClaim() ? null : player, price, event.getBlock().getLocation());
+				RealEstate.transactionsStore.sell(claim, GriefDefender.getCore().getAdminUser().getUniqueId().equals(claim.getOwnerUniqueId()) ? null : player, price, event.getBlock().getLocation());
 			}
 			else if(RealEstate.instance.config.cfgRentKeywords.contains(event.getLine(0).toLowerCase()) ||
 					RealEstate.instance.config.cfgContainerRentKeywords.contains(event.getLine(0).toLowerCase()))// we want to rent it

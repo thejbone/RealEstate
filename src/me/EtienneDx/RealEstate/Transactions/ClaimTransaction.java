@@ -10,6 +10,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 
+import com.griefdefender.api.GriefDefender;
 import com.griefdefender.api.claim.Claim;
 
 public abstract class ClaimTransaction implements ConfigurationSerializable, Transaction
@@ -22,7 +23,11 @@ public abstract class ClaimTransaction implements ConfigurationSerializable, Tra
 	public ClaimTransaction(Claim claim, Player player, double price, Location sign)
 	{
 		this.claimId = claim.getUniqueId();
-		this.owner = player != null ? player.getUniqueId() : null;
+		if (claim.isAdminClaim() || GriefDefender.getCore().getAdminUser().getUniqueId().equals(claim.getOwnerUniqueId())) {
+		    this.owner = null;
+		} else {
+		    this.owner = player != null ? player.getUniqueId() : null;
+		}
 		this.price = price;
 		this.sign = sign;
 	}
