@@ -41,6 +41,10 @@
                             <shadedPattern>me.EtienneDx.RealEstate.acf</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>co.aikar.locales</pattern>
+                            <shadedPattern>me.EtienneDx.RealEstate.acf</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>me.EtienneDx.AnnotationConfig</pattern>
                             <shadedPattern>me.EtienneDx.RealEstate.AnnotationConfig</shadedPattern>
                         </relocation>

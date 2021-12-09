@@ -3,6 +3,7 @@ main: me.EtienneDx.RealEstate.RealEstate
 version: ${project.version}
 authors: [EtienneDx, DmitryRendov]
 depend: [GriefDefender, Vault]
+softdepend: [Essentials]
 api-version: "1.15"
 
 commands:
