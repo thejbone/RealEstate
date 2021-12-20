@@ -114,10 +114,10 @@ public class Utils
 				// the seller has to provide the blocks
 				sellerData.setBonusClaimBlocks(sellerData.getBonusClaimBlocks() - claim.getArea());
 				if (sellerData.getBonusClaimBlocks() < 0)// can't have negative bonus claim blocks, so if need be, we take into the accrued 
-		        {
-		            sellerData.setAccruedClaimBlocks(sellerData.getAccruedClaimBlocks() + sellerData.getBonusClaimBlocks());
-		            sellerData.setBonusClaimBlocks(0);
-		        }
+				{
+					sellerData.setAccruedClaimBlocks(sellerData.getAccruedClaimBlocks() + sellerData.getBonusClaimBlocks());
+					sellerData.setBonusClaimBlocks(0);
+				}
 			}
 			
 			// the buyer receive them
@@ -125,19 +125,25 @@ public class Utils
 		}
 		
 		// start to change owner
-        for(Claim child : claim.getChildren(true))
-        {
-            if (child.getOwnerUniqueId().equals(claim.getOwnerUniqueId())) {
-                child.removeUserTrust(seller, TrustTypes.NONE);
-            }
-        }
-        claim.removeUserTrust(seller, TrustTypes.NONE);
+		if (seller != null) 
+		{
+			for(Claim child : claim.getChildren(true))
+			{
+				if (child.getOwnerUniqueId().equals(claim.getOwnerUniqueId())) 
+				{
+					child.removeUserTrust(seller, TrustTypes.NONE);
+				}
+			}
+			claim.removeUserTrust(seller, TrustTypes.NONE);
+		}
+
 		final ClaimResult result = claim.transferOwner(buyer);
 		if (!result.successful())// error occurs when trying to change subclaim owner
 		{
 			final Player player = Bukkit.getPlayer(buyer);
-			if (player != null) {
-			    player.sendMessage("Could not transfer claim! Result was '" + result.getResultType().toString() + "'.");
+			if (player != null) 
+			{
+				player.sendMessage("Could not transfer claim! Result was '" + result.getResultType().toString() + "'.");
 			}
 		}
 	}
