@@ -102,9 +102,16 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
-					if(claim.isInTown()){
-						price = price * 1.5;
+					if(claim.isCuboid()){
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
+						if(claim.isInTown()){
+							price = price * 1.5;
+						}
+					} else {
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
+						if(claim.isInTown()){
+							price = price * 1.5;
+						}
 					}
 				}
 				catch (NumberFormatException e)
@@ -174,9 +181,16 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceRentPerBlock * claim.getArea() * claim.getHeight());
-					if(claim.isInTown()){
-						price = price * 1.5;
+					if(claim.isCuboid()){
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
+						if(claim.isInTown()){
+							price = price * 1.5;
+						}
+					} else {
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
+						if(claim.isInTown()){
+							price = price * 1.5;
+						}
 					}
 				}
 				catch (NumberFormatException e)
@@ -289,9 +303,16 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceLeasePerBlock * claim.getArea() * claim.getHeight());
-					if(claim.isInTown()){
-						price = price * 1.5;
+					if(claim.isCuboid()){
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
+						if(claim.isInTown()){
+							price = price * 1.5;
+						}
+					} else {
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
+						if(claim.isInTown()){
+							price = price * 1.5;
+						}
 					}
 				}
 				catch (NumberFormatException e)
@@ -373,7 +394,6 @@ public class REListener implements Listener
 			}
 		}
 	}
-
 	private int parseDuration(String line)
 	{
 		Pattern p = Pattern.compile("^(?:(?<weeks>\\d{1,2}) ?w(?:eeks?)?)? ?(?:(?<days>\\d{1,2}) ?d(?:ays?)?)?$", Pattern.CASE_INSENSITIVE);
