@@ -167,7 +167,9 @@ public class ClaimRent extends BoughtTransaction
 					sign.getWorld().getName() + ", X: " + sign.getBlockX() + ", Y: " + 
 					sign.getBlockY() + ", Z: " + sign.getBlockZ() + "]" + ChatColor.AQUA + " is now over, your access has been revoked.");
 		}
+		RealEstate.userStore.getUser(buyer).decrementRents();
 		buyer = null;
+		RealEstate.userStore.saveData();
 		RealEstate.transactionsStore.saveData();
 		update();
 	}
@@ -180,7 +182,7 @@ public class ClaimRent extends BoughtTransaction
 		OfflinePlayer seller = owner == null ? null : Bukkit.getOfflinePlayer(owner);
 		
 		String claimType = GriefDefender.getCore().getClaimAt(sign).getParent() == null ? "claim" : "subclaim";
-		
+
 		if((autoRenew || periodCount < maxPeriod) && Utils.makePayment(owner, this.buyer, price, false, false))
 		{
 			periodCount = (periodCount + 1) % maxPeriod;
@@ -251,7 +253,7 @@ public class ClaimRent extends BoughtTransaction
 		update();
 		RealEstate.transactionsStore.saveData();
 	}
-	
+
 	@Override
 	public boolean tryCancelTransaction(Player p, boolean force)
 	{
@@ -290,7 +292,7 @@ public class ClaimRent extends BoughtTransaction
             return;
 		}
 		String claimType = claim.getParent() == null ? "claim" : "subclaim";
-		
+
 		if (owner != null && owner.equals(player.getUniqueId()))
         {
             player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You already own this " + claimType + "!");
@@ -311,7 +313,7 @@ public class ClaimRent extends BoughtTransaction
 		}
 		if(player.getUniqueId().equals(buyer))
 		{
-            player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You are already renting this " + 
+            player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You are already renting this " +
             		claimType + "!");
             return;
 		}
@@ -321,8 +323,14 @@ public class ClaimRent extends BoughtTransaction
             		claimType + "!");
             return;
 		}
-		
-		if(Utils.makePayment(owner, player.getUniqueId(), price, false, true))// if payment succeed
+		if((RealEstate.userStore.getUser(player.getUniqueId()).getNumberOfRents()) >= RealEstate.instance.config.cfgRentMax)
+		{ // doesnt exceed rental limit
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
+					RealEstate.instance.config.cfgRentMax + " plots!");
+			return;
+		}
+		if(Utils.makePayment(owner, player.getUniqueId(), price, false, true))
+			// if payment succeed
 		{
 			buyer = player.getUniqueId();
 			startDate = LocalDateTime.now();
@@ -331,9 +339,9 @@ public class ClaimRent extends BoughtTransaction
 			claim.addUserTrust(buyer, trustType);
 			update();
 			RealEstate.transactionsStore.saveData();
-			
+
 			RealEstate.instance.addLogEntry(
-                    "[" + RealEstate.transactionsStore.dateFormat.format(RealEstate.transactionsStore.date) + "] " + player.getName() + 
+                    "[" + RealEstate.transactionsStore.dateFormat.format(RealEstate.transactionsStore.date) + "] " + player.getName() +
                     " has rented a " + claimType + " at " +
                     "[" + player.getLocation().getWorld() + ", " +
                     "X: " + player.getLocation().getBlockX() + ", " +
@@ -344,10 +352,10 @@ public class ClaimRent extends BoughtTransaction
 			if(owner != null)
 			{
 				OfflinePlayer seller = Bukkit.getOfflinePlayer(owner);
-			
+
 				if(RealEstate.instance.config.cfgMessageOwner && seller.isOnline())
 				{
-					((Player)seller).sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.GREEN + player.getName() + ChatColor.AQUA + 
+					((Player)seller).sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.GREEN + player.getName() + ChatColor.AQUA +
 							" has just rented your " + claimType + " at " +
 							ChatColor.BLUE + "[" + sign.getWorld().getName() + ", X: " + sign.getBlockX() + ", Y: " + sign.getBlockY() + ", Z: "
 							+ sign.getBlockZ() + "]" + ChatColor.AQUA +
@@ -356,17 +364,19 @@ public class ClaimRent extends BoughtTransaction
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(this.owner);
-	        		u.addMail(RealEstate.instance.config.chatPrefix + ChatColor.GREEN + player.getName() + ChatColor.AQUA + 
+	        		u.addMail(RealEstate.instance.config.chatPrefix + ChatColor.GREEN + player.getName() + ChatColor.AQUA +
 							" has just rented your " + claimType + " at " +
 							ChatColor.BLUE + "[" + sign.getWorld().getName() + ", X: " + sign.getBlockX() + ", Y: " + sign.getBlockY() + ", Z: "
 							+ sign.getBlockZ() + "]" + ChatColor.AQUA +
 	                        " for " + ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural());
 	        	}
 			}
-			
-			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "You have successfully rented this " + claimType + 
+
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "You have successfully rented this " + claimType +
 					" for " + ChatColor.GREEN + price + RealEstate.econ.currencyNamePlural());
-			
+
+			RealEstate.userStore.getUser(player.getUniqueId()).incrementRents();
+			RealEstate.userStore.saveData();
 			destroySign();
 		}
 	}

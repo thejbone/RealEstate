@@ -102,7 +102,10 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
+					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
+					if(claim.isInTown()){
+						price = price * 1.5;
+					}
 				}
 				catch (NumberFormatException e)
 				{
@@ -125,7 +128,7 @@ public class REListener implements Listener
 					event.getBlock().breakNaturally();
 					return;
 				}
-				
+
 				if(claim.isAdminClaim())
 				{
 					if(!RealEstate.perms.has(player, "realestate.admin"))// admin may sell admin claims
@@ -171,7 +174,10 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceRentPerBlock * claim.getArea());
+					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceRentPerBlock * claim.getArea() * claim.getHeight());
+					if(claim.isInTown()){
+						price = price * 1.5;
+					}
 				}
 				catch (NumberFormatException e)
 				{
@@ -202,8 +208,8 @@ public class REListener implements Listener
 				int duration = parseDuration(event.getLine(2));
 				if(duration == 0)
 				{
-					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Couldn't read the date!\n" + 
-							"Date must be formatted as follow : " + ChatColor.GREEN + "10 weeks" + ChatColor.RED + " or " + 
+					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Couldn't read the date!\n" +
+							"Date must be formatted as follow : " + ChatColor.GREEN + "10 weeks" + ChatColor.RED + " or " +
 							ChatColor.GREEN + "3 days" + ChatColor.RED + " or " +  ChatColor.GREEN + "1 week 3 days");
 					event.setCancelled(true);
 					event.getBlock().breakNaturally();
@@ -222,7 +228,7 @@ public class REListener implements Listener
 					}
 					catch (NumberFormatException e)
 					{
-						player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
+						player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED +
 								"The number of rent periods you entered is not a valid number!");
 						event.setCancelled(true);
 						event.getBlock().breakNaturally();
@@ -230,7 +236,7 @@ public class REListener implements Listener
 					}
 					if(rentPeriods <= 0)
 					{
-						player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
+						player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED +
 								"The number of rent periods must be greater than 0!");
 						event.setCancelled(true);
 						event.getBlock().breakNaturally();
@@ -283,7 +289,10 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceLeasePerBlock * claim.getArea());
+					price = getDouble(event, 1, RealEstate.instance.config.cfgPriceLeasePerBlock * claim.getArea() * claim.getHeight());
+					if(claim.isInTown()){
+						price = price * 1.5;
+					}
 				}
 				catch (NumberFormatException e)
 				{
@@ -318,7 +327,7 @@ public class REListener implements Listener
 				}
 				catch(Exception e)
 				{
-					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
+					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED +
 							"The number of payments you enterred is not a valid number!");
 					event.setCancelled(true);
 					event.getBlock().breakNaturally();
@@ -332,8 +341,8 @@ public class REListener implements Listener
 				int frequency = parseDuration(event.getLine(3));
 				if(frequency == 0)
 				{
-					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Couldn't read the date!\n" + 
-							"Date must be formatted as follow" + ChatColor.GREEN + "10 weeks" + ChatColor.RED + " or " + 
+					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Couldn't read the date!\n" +
+							"Date must be formatted as follow" + ChatColor.GREEN + "10 weeks" + ChatColor.RED + " or " +
 							ChatColor.GREEN + "3 days" + ChatColor.RED + " or " +  ChatColor.GREEN + "1 week 3 days");
 					event.setCancelled(true);
 					event.getBlock().breakNaturally();
@@ -369,7 +378,7 @@ public class REListener implements Listener
 	{
 		Pattern p = Pattern.compile("^(?:(?<weeks>\\d{1,2}) ?w(?:eeks?)?)? ?(?:(?<days>\\d{1,2}) ?d(?:ays?)?)?$", Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(line);
-		if(!line.isEmpty() && m.matches()) 
+		if(!line.isEmpty() && m.matches())
 		{
 			int ret = 0;
 			if(m.group("weeks") != null)
@@ -405,7 +414,7 @@ public class REListener implements Listener
 
 				if(!RealEstate.transactionsStore.anyTransaction(claim))
 				{
-					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + 
+					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED +
 							"This claim is no longer for rent, sell or lease, sorry...");
 					event.getClickedBlock().breakNaturally();
 					event.setCancelled(true);

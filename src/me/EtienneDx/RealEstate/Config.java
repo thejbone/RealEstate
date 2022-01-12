@@ -86,6 +86,9 @@ public class Config extends AnnotationConfig
     @ConfigField(name="RealEstate.Default.PricesPerBlock.Lease", comment = "Chat is the default price per block when leasing a claim")
     public double cfgPriceLeasePerBlock = 2.0;
 
+    @ConfigField(name="RealEstate.Default.Max.Rentals", comment = "What is the max rentals?")
+    public int cfgRentMax = 2;
+
     @ConfigField(name="RealEstate.Default.Duration.Rent", comment = "How long is a rent period by default")
     public String cfgRentTime = "7D";
     @ConfigField(name="RealEstate.Default.Duration.Lease", comment = "How long is a lease period by default")

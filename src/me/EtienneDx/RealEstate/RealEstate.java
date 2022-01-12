@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.logging.Logger;
 
+import me.EtienneDx.RealEstate.Transactions.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,13 +17,6 @@ import com.griefdefender.api.claim.Claim;
 
 import co.aikar.commands.BukkitCommandManager;
 import co.aikar.commands.ConditionFailedException;
-import me.EtienneDx.RealEstate.Transactions.BoughtTransaction;
-import me.EtienneDx.RealEstate.Transactions.ClaimLease;
-import me.EtienneDx.RealEstate.Transactions.ClaimRent;
-import me.EtienneDx.RealEstate.Transactions.ClaimSell;
-import me.EtienneDx.RealEstate.Transactions.ExitOffer;
-import me.EtienneDx.RealEstate.Transactions.Transaction;
-import me.EtienneDx.RealEstate.Transactions.TransactionsStore;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
@@ -42,7 +36,8 @@ public class RealEstate extends JavaPlugin
     public static RealEstate instance = null;
     
     public static TransactionsStore transactionsStore = null;
-	
+	public static UserStore userStore;
+
 	@SuppressWarnings("deprecation")
 	public void onEnable()
 	{
@@ -94,6 +89,7 @@ public class RealEstate extends JavaPlugin
         ConfigurationSerialization.registerClass(ExitOffer.class);
         
         RealEstate.transactionsStore = new TransactionsStore();
+		RealEstate.userStore = new UserStore();
         
         new REListener().registerEvents();
         
