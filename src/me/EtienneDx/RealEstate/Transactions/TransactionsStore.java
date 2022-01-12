@@ -6,6 +6,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -304,5 +305,21 @@ public class TransactionsStore
 		if(player == null) return null;
 		final Claim c = GriefDefender.getCore().getClaimAt(player.getLocation());
 		return getTransaction(c);
+	}
+
+	public int getTransactionsRentals(Player player){
+		if(player == null) return 0;
+		int matchCount = 0;
+		int count = RealEstate.transactionsStore.claimRent.values().size();
+		ArrayList<ClaimRent> transactions = new ArrayList<>(count);
+		transactions.addAll(RealEstate.transactionsStore.claimRent.values());
+		for(int i = 0; i < count; i++){
+			if(transactions.get(i).getBuyer() != null){
+				if(transactions.get(i).getBuyer().compareTo(player.getUniqueId()) == 0){
+					matchCount++;
+				}
+			}
+		}
+		return matchCount;
 	}
 }

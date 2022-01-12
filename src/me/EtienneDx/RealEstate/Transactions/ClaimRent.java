@@ -167,9 +167,7 @@ public class ClaimRent extends BoughtTransaction
 					sign.getWorld().getName() + ", X: " + sign.getBlockX() + ", Y: " + 
 					sign.getBlockY() + ", Z: " + sign.getBlockZ() + "]" + ChatColor.AQUA + " is now over, your access has been revoked.");
 		}
-		RealEstate.userStore.getUser(buyer).decrementRents();
 		buyer = null;
-		RealEstate.userStore.saveData();
 		RealEstate.transactionsStore.saveData();
 		update();
 	}
@@ -323,7 +321,7 @@ public class ClaimRent extends BoughtTransaction
             		claimType + "!");
             return;
 		}
-		if((RealEstate.userStore.getUser(player.getUniqueId()).getNumberOfRents()) >= RealEstate.instance.config.cfgRentMax)
+		if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax)
 		{ // doesnt exceed rental limit
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
 					RealEstate.instance.config.cfgRentMax + " plots!");
@@ -374,9 +372,6 @@ public class ClaimRent extends BoughtTransaction
 
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "You have successfully rented this " + claimType +
 					" for " + ChatColor.GREEN + price + RealEstate.econ.currencyNamePlural());
-
-			RealEstate.userStore.getUser(player.getUniqueId()).incrementRents();
-			RealEstate.userStore.saveData();
 			destroySign();
 		}
 	}

@@ -36,7 +36,6 @@ public class RealEstate extends JavaPlugin
     public static RealEstate instance = null;
     
     public static TransactionsStore transactionsStore = null;
-	public static UserStore userStore;
 
 	@SuppressWarnings("deprecation")
 	public void onEnable()
@@ -83,14 +82,13 @@ public class RealEstate extends JavaPlugin
 		this.messages.saveConfig();// save eventual default
 		this.log.info("Customizable messages loaded.");
 
-        ConfigurationSerialization.registerClass(ClaimSell.class);
+		ConfigurationSerialization.registerClass(ClaimSell.class);
         ConfigurationSerialization.registerClass(ClaimRent.class);
         ConfigurationSerialization.registerClass(ClaimLease.class);
         ConfigurationSerialization.registerClass(ExitOffer.class);
         
         RealEstate.transactionsStore = new TransactionsStore();
-		RealEstate.userStore = new UserStore();
-        
+
         new REListener().registerEvents();
         
         manager = new BukkitCommandManager(this);
