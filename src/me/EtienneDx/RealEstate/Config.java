@@ -85,7 +85,11 @@ public class Config extends AnnotationConfig
     public double cfgPriceRentPerBlock = 2.0;
     @ConfigField(name="RealEstate.Default.PricesPerBlock.Lease", comment = "Chat is the default price per block when leasing a claim")
     public double cfgPriceLeasePerBlock = 2.0;
+    @ConfigField(name="RealEstate.Default.InTownMultiplier", comment = "Multiplier for claim in town")
+    public double cfgInTownMultiplier = 1.5;
 
+    @ConfigField(name="RealEstate.Default.CuboidPerBlockCost", comment = "Should cuboid claims be per block 3d or same as 2D claims? False for same as 2D claims")
+    public boolean cfgCuboidPerBlockCost = true;
     @ConfigField(name="RealEstate.Default.MaxRentals", comment = "What is the max rentals?")
     public int cfgRentMax = 2;
 

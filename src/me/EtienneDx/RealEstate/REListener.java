@@ -102,15 +102,15 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					if(claim.isCuboid()){
+					if(claim.isCuboid() && RealEstate.instance.config.cfgCuboidPerBlockCost){
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
 						if(claim.isInTown()){
-							price = price * 1.5;
+							price = price * RealEstate.instance.config.cfgInTownMultiplier;
 						}
 					} else {
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
 						if(claim.isInTown()){
-							price = price * 1.5;
+							price = price * RealEstate.instance.config.cfgInTownMultiplier;
 						}
 					}
 				}
@@ -181,15 +181,15 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					if(claim.isCuboid()){
-						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
+					if(claim.isCuboid() && RealEstate.instance.config.cfgCuboidPerBlockCost){
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceRentPerBlock * claim.getArea() * claim.getHeight());
 						if(claim.isInTown()){
-							price = price * 1.5;
+							price = price * RealEstate.instance.config.cfgInTownMultiplier;
 						}
 					} else {
-						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceRentPerBlock * claim.getArea());
 						if(claim.isInTown()){
-							price = price * 1.5;
+							price = price * RealEstate.instance.config.cfgInTownMultiplier;
 						}
 					}
 				}
@@ -303,15 +303,15 @@ public class REListener implements Listener
 				double price;
 				try
 				{
-					if(claim.isCuboid()){
-						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
+					if(claim.isCuboid() && RealEstate.instance.config.cfgCuboidPerBlockCost){
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceLeasePerBlock * claim.getArea() * claim.getHeight());
 						if(claim.isInTown()){
-							price = price * 1.5;
+							price = price * RealEstate.instance.config.cfgInTownMultiplier;
 						}
 					} else {
-						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
+						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceLeasePerBlock * claim.getArea());
 						if(claim.isInTown()){
-							price = price * 1.5;
+							price = price * RealEstate.instance.config.cfgInTownMultiplier;
 						}
 					}
 				}
