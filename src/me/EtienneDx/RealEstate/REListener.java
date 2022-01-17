@@ -268,7 +268,7 @@ public class REListener implements Listener
 						return;
 					}
 				}
-				else if(type.equals("claim") && !player.getUniqueId().equals(claim.getOwnerUniqueId()))// only the owner may sell his claim
+				else if(type.equals("claim") && !player.getUniqueId().equals(claim.getOwnerUniqueId()) && !player.hasPermission("realestate.admin.bypassOwnership"))// only the owner may sell his claim
 				{
 					player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You can only rent claims you own!");
 					event.setCancelled(true);

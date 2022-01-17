@@ -1,7 +1,6 @@
 package me.EtienneDx.RealEstate;
 
-import java.util.ArrayList;
-import java.util.UUID;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -32,7 +31,7 @@ import me.EtienneDx.RealEstate.Transactions.ClaimRent;
 import me.EtienneDx.RealEstate.Transactions.ExitOffer;
 import me.EtienneDx.RealEstate.Transactions.Transaction;
 
-@CommandAlias("re|realestate")
+@CommandAlias("re|realestate|rentals|rental")
 public class RECommand extends BaseCommand
 {
 	@Subcommand("info")
