@@ -7,6 +7,8 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+
+import me.EtienneDx.RealEstate.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -51,9 +53,9 @@ public class ClaimRent extends BoughtTransaction
 		}
 	}
 	
-	public ClaimRent(Claim claim, Player player, double price, Location sign, int duration, int rentPeriods, boolean buildTrust)
+	public ClaimRent(Claim claim, Player player, double price, Location sign, Location insideBlock, int duration, int rentPeriods, boolean buildTrust)
 	{
-		super(claim, player, price, sign);
+		super(claim, player, price, sign, insideBlock);
 		this.duration = duration;
 		this.maxPeriod = RealEstate.instance.config.cfgEnableRentPeriod ? rentPeriods : 1;
 		this.buildTrust = buildTrust;
@@ -94,7 +96,7 @@ public class ClaimRent extends BoughtTransaction
 					}
 					else
 					{
-						price_line = RealEstate.instance.config.cfgCurrencySymbol + " " + price;
+						price_line = RealEstate.instance.config.cfgCurrencySymbol + " " + RealEstate.econ.format(price);
 					}
 
 				}
@@ -106,7 +108,7 @@ public class ClaimRent extends BoughtTransaction
 					}
 					else
 					{
-						price_line = price + " " + RealEstate.econ.currencyNamePlural();
+						price_line = RealEstate.econ.format(price) + " " + RealEstate.econ.currencyNamePlural();
 					}
 				}
 				String period = (maxPeriod > 1 ? maxPeriod + "x " : "") + Utils.getTime(duration, null, false);
@@ -158,7 +160,7 @@ public class ClaimRent extends BoughtTransaction
 
 	private void unRent(boolean msgBuyer)
 	{
-		final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 		claim.removeUserTrust(buyer, TrustTypes.NONE);
 		if(msgBuyer && Bukkit.getOfflinePlayer(buyer).isOnline() && RealEstate.instance.config.cfgMessageBuyer)
 		{
@@ -178,8 +180,8 @@ public class ClaimRent extends BoughtTransaction
 
 		OfflinePlayer buyerPlayer = Bukkit.getOfflinePlayer(this.buyer);
 		OfflinePlayer seller = owner == null ? null : Bukkit.getOfflinePlayer(owner);
-		
-		String claimType = GriefDefender.getCore().getClaimAt(sign).getParent() == null ? "claim" : "subclaim";
+
+		String claimType = GriefDefender.getCore().getClaimAt(insideBlock).getParent() == null ? "claim" : "subclaim";
 
 		if((autoRenew || periodCount < maxPeriod) && Utils.makePayment(owner, this.buyer, price, false, false))
 		{
@@ -265,7 +267,7 @@ public class ClaimRent extends BoughtTransaction
 			}
 			else
 			{
-				final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+				final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 				if(p != null)
 					p.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This " + (claim.getParent() == null ? "claim" : "subclaim") + 
 	            		" is currently rented, you can't cancel the transaction!");
@@ -282,7 +284,7 @@ public class ClaimRent extends BoughtTransaction
 	@Override
 	public void interact(Player player)
 	{
-		final Claim claim = GriefDefender.getCore().getClaimAt(sign);// getting by id creates errors for subclaims
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);// getting by id creates errors for subclaims
 		if(claim == null || claim.isWilderness())
 		{
             player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This claim does not exist!");
@@ -311,8 +313,17 @@ public class ClaimRent extends BoughtTransaction
 		}
 		if(player.getUniqueId().equals(buyer))
 		{
-            player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You are already renting this " +
-            		claimType + "!");
+			if(!RealEstate.instance.config.cfgEnableAutoRenew)
+			{
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Automatic renew is disabled!");
+				return;
+			}
+			else
+			{
+				autoRenew = !autoRenew;
+				RealEstate.transactionsStore.saveData();
+				Messages.sendMessage(player, RealEstate.instance.messages.msgRenewRentNow, autoRenew ? "enabled" : "disabled", claimType);
+			}
             return;
 		}
 		if(buyer != null)
@@ -371,7 +382,7 @@ public class ClaimRent extends BoughtTransaction
 			}
 
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "You have successfully rented this " + claimType +
-					" for " + ChatColor.GREEN + price + RealEstate.econ.currencyNamePlural());
+					" for " + ChatColor.GREEN + price + RealEstate.econ.currencyNamePlural() + ChatColor.AQUA + ". Do /rent autorenew to enable auto renewal!");
 			destroySign();
 		}
 	}
@@ -379,7 +390,7 @@ public class ClaimRent extends BoughtTransaction
 	@Override
 	public void preview(Player player)
 	{
-		final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 		String msg = "";
 		if(player.hasPermission("realestate.info"))
 		{

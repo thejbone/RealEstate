@@ -3,6 +3,8 @@ package me.EtienneDx.RealEstate;
 import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -96,6 +98,22 @@ public class Utils
 		}
 		
 		return time;
+	}
+
+	public static int parseDuration(String line)
+	{
+		Pattern p = Pattern.compile("^(?:(?<weeks>\\d{1,2}) ?w(?:eeks?)?)? ?(?:(?<days>\\d{1,2}) ?d(?:ays?)?)?$", Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(line);
+		if(!line.isEmpty() && m.matches())
+		{
+			int ret = 0;
+			if(m.group("weeks") != null)
+				ret += 7 * Integer.parseInt(m.group("weeks"));
+			if(m.group("days") != null)
+				ret += Integer.parseInt(m.group("days"));
+			return ret;
+		}
+		return 0;
 	}
 	
 	public static void transferClaim(Claim claim, UUID buyer, UUID seller)

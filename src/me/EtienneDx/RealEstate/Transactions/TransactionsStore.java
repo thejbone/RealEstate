@@ -186,9 +186,9 @@ public class TransactionsStore
 				(tr instanceof ClaimLease && ((ClaimLease)tr).buyer == null);
 	}
 
-	public void sell(Claim claim, Player player, double price, Location sign)
+	public void sell(Claim claim, Player player, double price, Location sign, Location insideBlock)
 	{
-		ClaimSell cs = new ClaimSell(claim, claim.isAdminClaim() ? null : player, price, sign);
+		ClaimSell cs = new ClaimSell(claim, claim.isAdminClaim() ? null : player, price, sign, insideBlock);
 		claimSell.put(claim.getUniqueId().toString(), cs);
 		cs.update();
 		saveData();
@@ -223,13 +223,15 @@ public class TransactionsStore
 		}
 	}
 
-	public void rent(Claim claim, Player player, double price, Location sign, int duration, int rentPeriods, boolean buildTrust)
+	public void rent(Claim claim, Player player, double price, Location sign, Location insideBlock, int duration, int rentPeriods, boolean buildTrust)
 	{
-		ClaimRent cr = new ClaimRent(claim, claim.isAdminClaim() ? null : player, price, sign, duration, rentPeriods, buildTrust);
+		ClaimRent cr = new ClaimRent(claim, claim.isAdminClaim() ? null : player, price, sign, insideBlock, duration, rentPeriods, buildTrust);
 		claimRent.put(claim.getUniqueId().toString(), cr);
 		cr.update();
 		saveData();
-		
+
+
+
 		final World world = Bukkit.getWorld(claim.getWorldUniqueId());
 		RealEstate.instance.addLogEntry("[" + this.dateFormat.format(this.date) + "] " + (player == null ? "The Server" : player.getName()) + 
 				" has made " + (claim.isAdminClaim() ? "an admin" : "a") + " " + (claim.getParent() == null ? "claim" : "subclaim") + " for" + (buildTrust ? "" : " container") + " rent at " +
@@ -260,9 +262,9 @@ public class TransactionsStore
 		}
 	}
 
-	public void lease(Claim claim, Player player, double price, Location sign, int frequency, int paymentsCount)
+	public void lease(Claim claim, Player player, double price, Location sign, Location insideBlock, int frequency, int paymentsCount)
 	{
-		ClaimLease cl = new ClaimLease(claim, claim.isAdminClaim() ? null : player, price, sign, frequency, paymentsCount);
+		ClaimLease cl = new ClaimLease(claim, claim.isAdminClaim() ? null : player, price, sign, insideBlock, frequency, paymentsCount);
 		claimLease.put(claim.getUniqueId().toString(), cl);
 		cl.update();
 		saveData();

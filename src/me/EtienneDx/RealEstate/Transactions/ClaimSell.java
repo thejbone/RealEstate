@@ -22,9 +22,9 @@ import org.bukkit.command.CommandSender;
 
 public class ClaimSell extends ClaimTransaction
 {
-	public ClaimSell(Claim claim, Player player, double price, Location sign)
+	public ClaimSell(Claim claim, Player player, double price, Location sign, Location insideBlock)
 	{
-		super(claim, player, price, sign);
+		super(claim, player, price, sign, insideBlock);
 	}
 	
 	public ClaimSell(Map<String, Object> map)
@@ -83,7 +83,7 @@ public class ClaimSell extends ClaimTransaction
 	@Override
 	public void interact(Player player)
 	{
-		final Claim claim = GriefDefender.getCore().getClaimAt(sign);// getting by id creates errors for subclaims
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);// getting by id creates errors for subclaims
 		if(claim == null || claim.isWilderness())
 		{
             player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This claim does not exist!");
@@ -177,7 +177,7 @@ public class ClaimSell extends ClaimTransaction
 	@Override
 	public void preview(Player player)
 	{
-		final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 		String msg = "";
 		if(player.hasPermission("realestate.info"))
 		{

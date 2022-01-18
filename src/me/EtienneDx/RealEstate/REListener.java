@@ -5,6 +5,9 @@ import java.util.regex.Pattern;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -40,9 +43,16 @@ public class REListener implements Listener
 				RealEstate.instance.config.cfgContainerRentKeywords.contains(event.getLine(0).toLowerCase()))
 		{
 			Player player = event.getPlayer();
-			Location loc = event.getBlock().getLocation();
+			Location insideBlock = null;
+			Block block = event.getBlock();
 
-			final Claim claim = GriefDefender.getCore().getClaimAt(loc);
+			if (block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) {
+				org.bukkit.material.Sign s = (org.bukkit.material.Sign) block.getState().getData();
+				Block attachedBlock = block.getRelative(s.getAttachedFace());
+				insideBlock = attachedBlock.getLocation();
+			}
+
+			final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 			if(claim == null || claim.isWilderness())// must have something to sell
 			{
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "The sign you placed is not inside a claim!");
@@ -156,7 +166,7 @@ public class REListener implements Listener
 
 				// we should be good to sell it now
 				event.setCancelled(true);// need to cancel the event, so we can update the sign elsewhere
-				RealEstate.transactionsStore.sell(claim, GriefDefender.getCore().getAdminUser().getUniqueId().equals(claim.getOwnerUniqueId()) ? null : player, price, event.getBlock().getLocation());
+				RealEstate.transactionsStore.sell(claim, GriefDefender.getCore().getAdminUser().getUniqueId().equals(claim.getOwnerUniqueId()) ? null : player, price, event.getBlock().getLocation(), insideBlock);
 			}
 			else if(RealEstate.instance.config.cfgRentKeywords.contains(event.getLine(0).toLowerCase()) ||
 					RealEstate.instance.config.cfgContainerRentKeywords.contains(event.getLine(0).toLowerCase()))// we want to rent it
@@ -278,7 +288,7 @@ public class REListener implements Listener
 
 				// all should be good, we can create the rent
 				event.setCancelled(true);
-				RealEstate.transactionsStore.rent(claim, player, price, event.getBlock().getLocation(), duration, rentPeriods,
+				RealEstate.transactionsStore.rent(claim, player, price, event.getBlock().getLocation(), insideBlock, duration, rentPeriods,
 						RealEstate.instance.config.cfgRentKeywords.contains(event.getLine(0).toLowerCase()));
 			}
 			else if(RealEstate.instance.config.cfgLeaseKeywords.contains(event.getLine(0).toLowerCase()))// we want to rent it
@@ -390,10 +400,11 @@ public class REListener implements Listener
 
 				// all should be good, we can create the rent
 				event.setCancelled(true);
-				RealEstate.transactionsStore.lease(claim, player, price, event.getBlock().getLocation(), frequency, paymentsCount);
+				RealEstate.transactionsStore.lease(claim, player, price, event.getBlock().getLocation(), insideBlock, frequency, paymentsCount);
 			}
 		}
 	}
+
 	private int parseDuration(String line)
 	{
 		Pattern p = Pattern.compile("^(?:(?<weeks>\\d{1,2}) ?w(?:eeks?)?)? ?(?:(?<days>\\d{1,2}) ?d(?:ays?)?)?$", Pattern.CASE_INSENSITIVE);
@@ -427,10 +438,20 @@ public class REListener implements Listener
 		{
 			Sign sign = (Sign)event.getClickedBlock().getState();
 			// it is a real estate sign
-			if(ChatColor.stripColor(sign.getLine(0)).equalsIgnoreCase(ChatColor.stripColor(RealEstate.instance.config.cfgSignsHeader)))
+			if(ChatColor.stripColor(sign.getLine(0)).equalsIgnoreCase(ChatColor.stripColor(RealEstate.instance.config.cfgSignsHeader)) ||
+					ChatColor.stripColor(sign.getLine(0)).equalsIgnoreCase(ChatColor.stripColor(RealEstate.instance.config.cfgReplaceOngoingRent)))
 			{
 				Player player = event.getPlayer();
-				final Claim claim = GriefDefender.getCore().getClaimAt(event.getClickedBlock().getLocation());
+				Location loc = null;
+				Block block = event.getClickedBlock();
+
+				if (block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) {
+					org.bukkit.material.Sign s = (org.bukkit.material.Sign) block.getState().getData();
+					Block attachedBlock = block.getRelative(s.getAttachedFace());
+					loc = attachedBlock.getLocation();
+				}
+
+				Claim claim = GriefDefender.getCore().getClaimAt(loc);
 
 				if(!RealEstate.transactionsStore.anyTransaction(claim))
 				{
@@ -449,19 +470,46 @@ public class REListener implements Listener
 			}
 		}
 	}
+	private static final BlockFace[] SIDES = new BlockFace[] {
+			BlockFace.UP,
+			BlockFace.NORTH,
+			BlockFace.SOUTH,
+			BlockFace.WEST,
+			BlockFace.EAST
+	};
 
 	@EventHandler
 	public void onBreakBlock(BlockBreakEvent event)
 	{
-		if(event.getBlock().getState() instanceof Sign)
+		boolean isAttachedBlockToSign = false;
+		for (BlockFace side : SIDES) {
+			final Block b = event.getBlock().getRelative(side);
+			if (b.getState().getData() instanceof org.bukkit.material.Sign) {
+				org.bukkit.material.Sign sign = (org.bukkit.material.Sign)b.getState().getData();
+				if (b.getRelative(sign.getAttachedFace()).equals(event.getBlock())) {
+					isAttachedBlockToSign = true;
+				}
+			}
+		}
+
+		if(event.getBlock().getState() instanceof Sign || isAttachedBlockToSign)
 		{
-			final Claim claim = GriefDefender.getCore().getClaimAt(event.getBlock().getLocation());
+			Claim nonfinalClaim;
+			if(isAttachedBlockToSign){
+				nonfinalClaim = GriefDefender.getCore().getClaimAt(event.getBlock().getLocation());
+			} else {
+				org.bukkit.material.Sign s = (org.bukkit.material.Sign) event.getBlock().getState().getData();
+				Block attachedBlock = event.getBlock().getRelative(s.getAttachedFace());
+				nonfinalClaim = GriefDefender.getCore().getClaimAt(attachedBlock.getLocation());
+			}
+			final Claim claim = nonfinalClaim;
+
 			if(claim != null)
 			{
 				Transaction tr = RealEstate.transactionsStore.getTransaction(claim);
-				if(tr != null && event.getBlock().equals(tr.getHolder()))
+				if(tr != null && (event.getBlock().equals(tr.getHolder()) || event.getBlock().equals(tr.getInsideBlock())))
 				{
-					if(event.getPlayer() != null && tr.getOwner() != null  && !event.getPlayer().getUniqueId().equals(tr.getOwner()) && 
+					if(event.getPlayer() != null && tr.getOwner() != null  && !event.getPlayer().getUniqueId().equals(tr.getOwner()) &&
 							!RealEstate.perms.has(event.getPlayer(), "realestate.destroysigns"))
 					{
 						event.getPlayer().sendMessage(RealEstate.instance.config.chatPrefix + 

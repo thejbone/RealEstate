@@ -28,9 +28,9 @@ public abstract class BoughtTransaction extends ClaimTransaction
 			destroyedSign = (boolean) map.get("destroyedSign");
 	}
 	
-	public BoughtTransaction(Claim claim, Player player, double price, Location sign)
+	public BoughtTransaction(Claim claim, Player player, double price, Location sign, Location blockAttached)
 	{
-		super(claim, player, price, sign);
+		super(claim, player, price, sign, blockAttached);
 	}
 
 	@Override

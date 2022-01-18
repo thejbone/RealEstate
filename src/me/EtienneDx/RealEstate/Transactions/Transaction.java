@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 public interface Transaction
 {
 	public Block getHolder();
+	public Block getInsideBlock();
 	public UUID getOwner();
 	public void setOwner(UUID newOwner);
 	public void interact(Player player);

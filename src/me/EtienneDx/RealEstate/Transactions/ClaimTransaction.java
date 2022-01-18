@@ -19,8 +19,9 @@ public abstract class ClaimTransaction implements ConfigurationSerializable, Tra
 	public UUID owner = null;
 	public double price;
 	public Location sign = null;
+	public Location insideBlock = null;
 	
-	public ClaimTransaction(Claim claim, Player player, double price, Location sign)
+	public ClaimTransaction(Claim claim, Player player, double price, Location sign, Location insideBlock)
 	{
 		this.claimId = claim.getUniqueId();
 		if (claim.isAdminClaim() || GriefDefender.getCore().getAdminUser().getUniqueId().equals(claim.getOwnerUniqueId())) {
@@ -30,8 +31,21 @@ public abstract class ClaimTransaction implements ConfigurationSerializable, Tra
 		}
 		this.price = price;
 		this.sign = sign;
+		this.insideBlock = insideBlock;
 	}
-	
+
+	public ClaimTransaction(Claim claim, Player player, double price)
+	{
+		this.claimId = claim.getUniqueId();
+		if (claim.isAdminClaim() || GriefDefender.getCore().getAdminUser().getUniqueId().equals(claim.getOwnerUniqueId())) {
+		    this.owner = null;
+		} else {
+		    this.owner = player != null ? player.getUniqueId() : null;
+		}
+		this.price = price;
+		this.sign = null;
+	}
+
 	public ClaimTransaction(Map<String, Object> map)
 	{
 		this.claimId = UUID.fromString(String.valueOf(map.get("claimId")));
@@ -40,6 +54,10 @@ public abstract class ClaimTransaction implements ConfigurationSerializable, Tra
 		this.price = (double) map.get("price");
 		if(map.get("signLocation") != null)
 			this.sign = (Location) map.get("signLocation");
+		if(map.get("insideBlockLocation") != null){
+			this.insideBlock = (Location) map.get("insideBlockLocation");
+		}
+
 	}
 	
 	public ClaimTransaction()
@@ -58,7 +76,10 @@ public abstract class ClaimTransaction implements ConfigurationSerializable, Tra
 		map.put("price", this.price);
 		if(sign != null)
 			map.put("signLocation", sign);
-		
+		if(insideBlock != null){
+			map.put("insideBlockLocation", insideBlock);
+		}
+
 		return map;
 	}
 
@@ -66,6 +87,11 @@ public abstract class ClaimTransaction implements ConfigurationSerializable, Tra
 	public Block getHolder()
 	{
 		return sign.getBlock().getState() instanceof Sign ? sign.getBlock() : null;
+	}
+
+	@Override
+	public Block getInsideBlock(){
+		return insideBlock.getBlock();
 	}
 
 	@Override

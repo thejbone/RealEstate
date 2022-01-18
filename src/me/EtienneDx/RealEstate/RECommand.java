@@ -2,8 +2,8 @@ package me.EtienneDx.RealEstate;
 
 import java.util.*;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -31,7 +31,7 @@ import me.EtienneDx.RealEstate.Transactions.ClaimRent;
 import me.EtienneDx.RealEstate.Transactions.ExitOffer;
 import me.EtienneDx.RealEstate.Transactions.Transaction;
 
-@CommandAlias("re|realestate|rentals|rental")
+@CommandAlias("re|realestate|rentals|rental|rent")
 public class RECommand extends BaseCommand
 {
 	@Subcommand("info")
@@ -146,7 +146,7 @@ public class RECommand extends BaseCommand
 		}
 	}
 	
-	@Subcommand("renewrent")
+	@Subcommand("autorenew")
 	@Description("Allows the player renting a claim or subclaim to enable or disable the automatic renew of his rent")
 	@Conditions("partOfRent")
     @CommandCompletion("enable|disable")
@@ -409,7 +409,8 @@ public class RECommand extends BaseCommand
 		Transaction t = RealEstate.transactionsStore.getTransaction(claim);
 		t.tryCancelTransaction(player, true);
 	}
-	
+
+
 	@HelpCommand
 	public static void onHelp(CommandSender sender, CommandHelp help)
 	{

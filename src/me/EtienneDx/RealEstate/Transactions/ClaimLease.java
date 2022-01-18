@@ -39,9 +39,9 @@ public class ClaimLease extends BoughtTransaction
 		paymentsLeft = (int)map.get("paymentsLeft");
 	}
 	
-	public ClaimLease(Claim claim, Player player, double price, Location sign, int frequency, int paymentsLeft)
+	public ClaimLease(Claim claim, Player player, double price, Location sign, Location insideBlock, int frequency, int paymentsLeft)
 	{
-		super(claim, player, price, sign);
+		super(claim, player, price, sign, insideBlock);
 		this.frequency = frequency;
 		this.paymentsLeft = paymentsLeft;
 	}
@@ -125,7 +125,7 @@ public class ClaimLease extends BoughtTransaction
 		OfflinePlayer buyerPlayer = Bukkit.getOfflinePlayer(buyer);
 		OfflinePlayer seller = owner == null ? null : Bukkit.getOfflinePlayer(owner);
 		
-		String claimType = GriefDefender.getCore().getClaimAt(sign).getParent() == null ? "claim" : "subclaim";
+		String claimType = GriefDefender.getCore().getClaimAt(insideBlock).getParent() == null ? "claim" : "subclaim";
 		
 		if(Utils.makePayment(owner, buyer, price, false, false))
 		{
@@ -213,7 +213,7 @@ public class ClaimLease extends BoughtTransaction
 							ChatColor.AQUA + "at the price of " + ChatColor.GREEN + price + " " + RealEstate.econ.currencyNamePlural() + 
 							ChatColor.AQUA + ", the " + claimType + " is now his property");
 	        	}
-				final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+				final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 				
 				Utils.transferClaim(claim, buyer, owner);
 				RealEstate.transactionsStore.cancelTransaction(this);// the transaction is finished
@@ -234,7 +234,7 @@ public class ClaimLease extends BoughtTransaction
 			OfflinePlayer buyerPlayer = Bukkit.getOfflinePlayer(buyer);
 			OfflinePlayer seller = owner == null ? null : Bukkit.getOfflinePlayer(owner);
 			
-			final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+			final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 			
 			String claimType = claim.getParent() == null ? "claim" : "subclaim";
 			
@@ -292,7 +292,7 @@ public class ClaimLease extends BoughtTransaction
 			}
 			else
 			{
-				final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+				final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 				if(p != null)
 					p.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This " + (claim.getParent() == null ? "claim" : "subclaim") + 
 	            		" is currently leased, you can't cancel the transaction!");
@@ -309,7 +309,7 @@ public class ClaimLease extends BoughtTransaction
 	@Override
 	public void interact(Player player)
 	{
-		final Claim claim = GriefDefender.getCore().getClaimAt(sign);// getting by id creates errors for subclaims
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);// getting by id creates errors for subclaims
 		if(claim == null || claim.isWilderness())
 		{
             player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This claim does not exist!");
@@ -401,7 +401,7 @@ public class ClaimLease extends BoughtTransaction
 	@Override
 	public void preview(Player player)
 	{
-		final Claim claim = GriefDefender.getCore().getClaimAt(sign);
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 		String msg = "";
 		if(player.hasPermission("realestate.info"))
 		{
