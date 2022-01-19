@@ -115,12 +115,12 @@ public class REListener implements Listener
 					if(claim.isCuboid() && RealEstate.instance.config.cfgCuboidPerBlockCost){
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea() * claim.getHeight());
 						if(claim.isInTown()){
-							price = price * RealEstate.instance.config.cfgInTownMultiplier;
+							price = Math.round(price * RealEstate.instance.config.cfgInTownMultiplier*100.0)/100.0;;
 						}
 					} else {
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceSellPerBlock * claim.getArea());
 						if(claim.isInTown()){
-							price = price * RealEstate.instance.config.cfgInTownMultiplier;
+							price = Math.round(price * RealEstate.instance.config.cfgInTownMultiplier*100.0)/100.0;;
 						}
 					}
 				}
@@ -194,12 +194,12 @@ public class REListener implements Listener
 					if(claim.isCuboid() && RealEstate.instance.config.cfgCuboidPerBlockCost){
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceRentPerBlock * claim.getArea() * claim.getHeight());
 						if(claim.isInTown()){
-							price = price * RealEstate.instance.config.cfgInTownMultiplier;
+							price = Math.round(price * RealEstate.instance.config.cfgInTownMultiplier*100.0)/100.0;;
 						}
 					} else {
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceRentPerBlock * claim.getArea());
 						if(claim.isInTown()){
-							price = price * RealEstate.instance.config.cfgInTownMultiplier;
+							price = Math.round(price * RealEstate.instance.config.cfgInTownMultiplier*100.0)/100.0;;
 						}
 					}
 				}
@@ -290,6 +290,7 @@ public class REListener implements Listener
 				event.setCancelled(true);
 				RealEstate.transactionsStore.rent(claim, player, price, event.getBlock().getLocation(), insideBlock, duration, rentPeriods,
 						RealEstate.instance.config.cfgRentKeywords.contains(event.getLine(0).toLowerCase()));
+
 			}
 			else if(RealEstate.instance.config.cfgLeaseKeywords.contains(event.getLine(0).toLowerCase()))// we want to rent it
 			{
@@ -316,12 +317,12 @@ public class REListener implements Listener
 					if(claim.isCuboid() && RealEstate.instance.config.cfgCuboidPerBlockCost){
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceLeasePerBlock * claim.getArea() * claim.getHeight());
 						if(claim.isInTown()){
-							price = price * RealEstate.instance.config.cfgInTownMultiplier;
+							price = Math.round(price * RealEstate.instance.config.cfgInTownMultiplier*100.0)/100.0;;
 						}
 					} else {
 						price = getDouble(event, 1, RealEstate.instance.config.cfgPriceLeasePerBlock * claim.getArea());
 						if(claim.isInTown()){
-							price = price * RealEstate.instance.config.cfgInTownMultiplier;
+							price = Math.round(price * RealEstate.instance.config.cfgInTownMultiplier*100.0)/100.0;
 						}
 					}
 				}

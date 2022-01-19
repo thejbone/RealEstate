@@ -57,6 +57,10 @@
                             <shadedPattern>com.griefdefender.lib.kyori.adventure.text</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>net.kyori.adventure.title</pattern>
+                            <shadedPattern>com.griefdefender.lib.kyori.adventure.title</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>com.flowpowered</pattern>
                             <shadedPattern>com.griefdefender.lib.flowpowered</shadedPattern>
                         </relocation>
@@ -110,12 +114,27 @@
 	        <id>glaremasters</id>
 	        <url>https://repo.glaremasters.me/repository/bloodshot</url>
 	    </repository>
+		<repository>
+			<id>dynmap</id>
+			<url>http://repo.mikeprimm.com/org/</url>
+		</repository>
 	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>net.kyori</groupId>
+			<artifactId>adventure-api</artifactId>
+			<version>4.9.3</version>
+		</dependency>
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
 			<version>1.12.2-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>us.dynmap</groupId>
+			<artifactId>dynmap-api</artifactId>
+			<version>3.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

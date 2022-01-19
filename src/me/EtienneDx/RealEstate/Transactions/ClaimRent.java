@@ -9,6 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import me.EtienneDx.RealEstate.Messages;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -79,6 +82,7 @@ public class ClaimRent extends BoughtTransaction
 	@Override
 	public boolean update()
 	{
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 		if(buyer == null)
 		{
 			if(sign.getBlock().getState() instanceof Sign)
@@ -88,7 +92,10 @@ public class ClaimRent extends BoughtTransaction
 				s.setLine(1, ChatColor.DARK_GREEN + RealEstate.instance.config.cfgReplaceRent);
 				//s.setLine(2, owner != null ? Bukkit.getOfflinePlayer(owner).getName() : "SERVER");
 				String price_line = "";
-				if(RealEstate.instance.config.cfgUseCurrencySymbol)
+				if(RealEstate.instance.config.cfgUseVaultCurrencyFormat){
+					price_line = RealEstate.econ.format(price);
+				}
+				else if(RealEstate.instance.config.cfgUseCurrencySymbol)
 				{
 					if(RealEstate.instance.config.cfgUseDecimalCurrency == false)
 					{
@@ -96,7 +103,7 @@ public class ClaimRent extends BoughtTransaction
 					}
 					else
 					{
-						price_line = RealEstate.instance.config.cfgCurrencySymbol + " " + RealEstate.econ.format(price);
+						price_line = RealEstate.instance.config.cfgCurrencySymbol + " " + price;
 					}
 
 				}
@@ -108,7 +115,7 @@ public class ClaimRent extends BoughtTransaction
 					}
 					else
 					{
-						price_line = RealEstate.econ.format(price) + " " + RealEstate.econ.currencyNamePlural();
+						price_line = price + " " + RealEstate.econ.currencyNamePlural();
 					}
 				}
 				String period = (maxPeriod > 1 ? maxPeriod + "x " : "") + Utils.getTime(duration, null, false);
@@ -120,6 +127,13 @@ public class ClaimRent extends BoughtTransaction
 					s.setLine(3, price_line + " - " + period);
 				}
 				s.update(true);
+				final Component mainTitle = Component.text("For Rent!", NamedTextColor.GREEN);
+				final Component subTitle = Component.text(RealEstate.econ.format(price), NamedTextColor.GREEN);
+				final Title newTitle = Title.title(mainTitle, subTitle);
+				claim.getData().setEnterTitle(newTitle);
+				claim.getData().setDisplayName(mainTitle.append(Component.text(" - ", NamedTextColor.GREEN)).append(subTitle));
+
+
 			}
 			else
 			{
@@ -140,18 +154,27 @@ public class ClaimRent extends BoughtTransaction
 			{
 				payRent();
 			}
-			else if(sign.getBlock().getState() instanceof Sign)
+			else
 			{
-				Sign s = (Sign) sign.getBlock().getState();
-				s.setLine(0, ChatColor.GOLD + RealEstate.instance.config.cfgReplaceOngoingRent); //Changed the header to "[Rented]" so that it won't waste space on the next line and allow the name of the player to show underneath.
-				s.setLine(1, Utils.getSignString(Bukkit.getOfflinePlayer(buyer).getName()));//remove "Rented by"
-				s.setLine(2, "Time remaining : ");
-				
-				int daysLeft = duration - days - 1;// we need to remove the current day
-				Duration timeRemaining = Duration.ofHours(24).minus(hours);
-				
-				s.setLine(3, Utils.getTime(daysLeft, timeRemaining, false));
-				s.update(true);
+				if(sign.getBlock().getState() instanceof Sign){
+					Sign s = (Sign) sign.getBlock().getState();
+					s.setLine(0, ChatColor.GOLD + RealEstate.instance.config.cfgReplaceOngoingRent); //Changed the header to "[Rented]" so that it won't waste space on the next line and allow the name of the player to show underneath.
+					s.setLine(1, Utils.getSignString(Bukkit.getOfflinePlayer(buyer).getName()));//remove "Rented by"
+					s.setLine(2, "Time remaining : ");
+
+					int daysLeft = duration - days - 1;// we need to remove the current day
+					Duration timeRemaining = Duration.ofHours(24).minus(hours);
+
+					s.setLine(3, Utils.getTime(daysLeft, timeRemaining, false));
+					s.update(true);
+					final Component mainTitle = Component.text(Bukkit.getPlayer(buyer).getDisplayName() + "'s rental!", NamedTextColor.AQUA);
+					final Component subTitle = Component.text(RealEstate.econ.format(price), NamedTextColor.GREEN);
+					final Title newTitle = Title.title(mainTitle, subTitle);
+					claim.getData().setEnterTitle(newTitle);
+					claim.getData().setDisplayName(mainTitle.append(Component.text(" - ", NamedTextColor.DARK_GRAY)).append(subTitle));
+				} else {
+					unRent(true);
+				}
 			}
 		}
 		return false;
@@ -170,6 +193,7 @@ public class ClaimRent extends BoughtTransaction
 					sign.getBlockY() + ", Z: " + sign.getBlockZ() + "]" + ChatColor.AQUA + " is now over, your access has been revoked.");
 		}
 		buyer = null;
+
 		RealEstate.transactionsStore.saveData();
 		update();
 	}
@@ -181,12 +205,14 @@ public class ClaimRent extends BoughtTransaction
 		OfflinePlayer buyerPlayer = Bukkit.getOfflinePlayer(this.buyer);
 		OfflinePlayer seller = owner == null ? null : Bukkit.getOfflinePlayer(owner);
 
-		String claimType = GriefDefender.getCore().getClaimAt(insideBlock).getParent() == null ? "claim" : "subclaim";
+		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
+		String claimType = claim.getParent() == null ? "claim" : "subclaim";
 
 		if((autoRenew || periodCount < maxPeriod) && Utils.makePayment(owner, this.buyer, price, false, false))
 		{
 			periodCount = (periodCount + 1) % maxPeriod;
 			startDate = LocalDateTime.now();
+
 			if(buyerPlayer.isOnline() && RealEstate.instance.config.cfgMessageBuyer)
 			{
 				((Player)buyerPlayer).sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + 
@@ -346,6 +372,9 @@ public class ClaimRent extends BoughtTransaction
 			autoRenew = false;
 			TrustType trustType = buildTrust ? TrustTypes.BUILDER : TrustTypes.CONTAINER;
 			claim.addUserTrust(buyer, trustType);
+
+
+
 			update();
 			RealEstate.transactionsStore.saveData();
 

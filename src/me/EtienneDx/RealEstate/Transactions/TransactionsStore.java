@@ -11,6 +11,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -229,8 +232,6 @@ public class TransactionsStore
 		claimRent.put(claim.getUniqueId().toString(), cr);
 		cr.update();
 		saveData();
-
-
 
 		final World world = Bukkit.getWorld(claim.getWorldUniqueId());
 		RealEstate.instance.addLogEntry("[" + this.dateFormat.format(this.date) + "] " + (player == null ? "The Server" : player.getName()) + 
