@@ -214,7 +214,7 @@ public class RECommand extends BaseCommand
 				player.sendMessage(msg);
 			}
 		}
-		
+
 		@Subcommand("create")
 		@Description("Creates an offer to break an ongoing transaction")
 		@Syntax("<price>")
@@ -410,6 +410,118 @@ public class RECommand extends BaseCommand
 		t.tryCancelTransaction(player, true);
 	}
 
+	@Subcommand("trust")
+	@Description("Allows the player to add people to their rental")
+	@Conditions("partOfRent")
+	@CommandCompletion("<name>")
+	@Syntax("<name>")
+	public static void rentalTrust(Player player, @Optional String friend)
+	{
+		Location loc = player.getLocation();
+		final Claim claim = GriefDefender.getCore().getClaimAt(loc);
+		ClaimRent cr = (ClaimRent)RealEstate.transactionsStore.getTransaction(claim);
+		UUID friendUUID = null;
+		if(!cr.buyer.equals(player.getUniqueId()))
+		{
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Only the buyer may change this setting!");
+			return;
+		}
+		else if(friend == null)
+		{
+			StringBuilder friendsList = new StringBuilder();
+			Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustError);
+			for (UUID uuid : cr.friends) {
+				if(cr.friends.indexOf(uuid) == cr.friends.size()){
+					friendsList.append(Bukkit.getOfflinePlayer(uuid).getName());
+				} else {
+					friendsList.append(Bukkit.getOfflinePlayer(uuid).getName()).append(", ");
+				}
+			}
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "Current trusted: " + friendsList);
+		}
+		else
+		{
+			try {
+				friendUUID = Bukkit.getOfflinePlayer(friend).getUniqueId();
+				if(!Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore()){
+					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+				}
+			} catch (Exception ignored){}
+			if(cr.buyer.equals(friendUUID)) {
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You cant untrust yourself!");
+				return;
+			}
+			if(cr.friends.contains(friendUUID)){
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This user is already trusted!");
+			} else {
+				if(cr.buyer.equals(player.getUniqueId()) && Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore())
+				{
+					cr.addFriend(friendUUID);
+					claim.addUserTrust(friendUUID, TrustTypes.BUILDER);
+					RealEstate.transactionsStore.saveData();
+					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustAdded, friend);
+				} else {
+					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+				}
+			}
+		}
+	}
+	@Subcommand("untrust")
+	@Description("Allows the player to remove people to their rental")
+	@Conditions("partOfRent")
+	@CommandCompletion("<name>")
+	@Syntax("<name>")
+	public static void rentalUntrust(Player player, @Optional String friend)
+	{
+		Location loc = player.getLocation();
+		final Claim claim = GriefDefender.getCore().getClaimAt(loc);
+		ClaimRent cr = (ClaimRent)RealEstate.transactionsStore.getTransaction(claim);
+		UUID friendUUID = null;
+		if(!cr.buyer.equals(player.getUniqueId()))
+		{
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Only the buyer may change this setting!");
+			return;
+		}
+		else if(friend == null)
+		{
+			StringBuilder friendsList = new StringBuilder();
+			Messages.sendMessage(player, RealEstate.instance.messages.msgRentUnTrustError);
+			for (UUID uuid : cr.friends) {
+				if(cr.friends.indexOf(uuid) == cr.friends.size()){
+					friendsList.append(Bukkit.getOfflinePlayer(uuid).getName());
+				} else {
+					friendsList.append(Bukkit.getOfflinePlayer(uuid).getName()).append(", ");
+				}
+			}
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + "Current trusted: " + friendsList);
+		}
+		else
+		{
+			try {
+				friendUUID = Bukkit.getOfflinePlayer(friend).getUniqueId();
+				if(!Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore()){
+					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+				}
+			} catch (Exception ignored){}
+			if(cr.buyer.equals(friendUUID)) {
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You cant untrust yourself!");
+				return;
+			}
+			if(!cr.friends.contains(friendUUID)){
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This user is already untrusted!");
+			} else {
+				if(cr.buyer.equals(player.getUniqueId()) && Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore())
+				{
+					cr.removeFriend(friendUUID);
+					claim.removeUserTrust(friendUUID, TrustTypes.BUILDER);
+					RealEstate.transactionsStore.saveData();
+					Messages.sendMessage(player, RealEstate.instance.messages.msgRentUnTrust, friend);
+				} else {
+					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+				}
+			}
+		}
+	}
 
 	@HelpCommand
 	public static void onHelp(CommandSender sender, CommandHelp help)

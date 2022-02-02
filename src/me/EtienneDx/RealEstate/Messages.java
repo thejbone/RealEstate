@@ -32,7 +32,14 @@ public class Messages extends AnnotationConfig
 
     @ConfigField(name="RealEstate.RenewRentCurrently", comment = "0: enabled/disabled; 1: type of claim")
     public String msgRenewRentCurrently = "$bAutomatic renew is currently $a{0} $bfor this {1}";
-    
+
+    public String msgRentTrustError = ChatColor.RED + "Usage : /re trust [username]!";
+    public String msgRentUnTrustError = ChatColor.RED + "Usage : /re untrust [username]!";
+    public String msgRentTrustNoUser = ChatColor.RED + "The username you provided does not exist.";
+    public String msgRentTrustAdded = ChatColor.AQUA + "{0} has been added to your claim!";
+    public String msgRentUnTrust = ChatColor.AQUA + "{0} has been removed from your claim!";
+    public String msgRentalEnded = ChatColor.AQUA + "You're rental has ended! You will NOT get a refund!";
+
     public String msgErrorOutOfClaim = ChatColor.RED + "You must stand inside of a claim to use this command!";
     
     public String msgErrorPlayerOnly = ChatColor.RED + "Only Players can perform this command!";

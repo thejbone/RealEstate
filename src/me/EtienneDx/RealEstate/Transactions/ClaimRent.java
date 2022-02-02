@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Map;
 
 import me.EtienneDx.RealEstate.Messages;
@@ -29,6 +30,7 @@ import com.griefdefender.api.claim.TrustTypes;
 import me.EtienneDx.RealEstate.RealEstate;
 import me.EtienneDx.RealEstate.Utils;
 import net.md_5.bungee.api.ChatColor;
+import org.checkerframework.checker.units.qual.A;
 
 public class ClaimRent extends BoughtTransaction
 {
@@ -167,11 +169,13 @@ public class ClaimRent extends BoughtTransaction
 
 					s.setLine(3, Utils.getTime(daysLeft, timeRemaining, false));
 					s.update(true);
-					final Component mainTitle = Component.text(Bukkit.getPlayer(buyer).getDisplayName() + "'s rental!", NamedTextColor.AQUA);
-					final Component subTitle = Component.text(RealEstate.econ.format(price), NamedTextColor.GREEN);
-					final Title newTitle = Title.title(mainTitle, subTitle);
-					claim.getData().setEnterTitle(newTitle);
-					claim.getData().setDisplayName(mainTitle.append(Component.text(" - ", NamedTextColor.DARK_GRAY)).append(subTitle));
+					try {
+						final Component mainTitle = Component.text(Bukkit.getOfflinePlayer(buyer).getName() + "'s rental!", NamedTextColor.AQUA);
+						final Component subTitle = Component.text(RealEstate.econ.format(price), NamedTextColor.GREEN);
+						final Title newTitle = Title.title(mainTitle, subTitle);
+						claim.getData().setEnterTitle(newTitle);
+						claim.getData().setDisplayName(mainTitle.append(Component.text(" - ", NamedTextColor.DARK_GRAY)).append(subTitle));
+					} catch (Exception ignored){}
 				} else {
 					unRent(true);
 				}
@@ -185,6 +189,9 @@ public class ClaimRent extends BoughtTransaction
 	{
 		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
 		claim.removeUserTrust(buyer, TrustTypes.NONE);
+		friends.forEach(a -> {
+			claim.removeUserTrust(a, TrustTypes.NONE);
+		});
 		if(msgBuyer && Bukkit.getOfflinePlayer(buyer).isOnline() && RealEstate.instance.config.cfgMessageBuyer)
 		{
 			Bukkit.getPlayer(buyer).sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.AQUA + 
@@ -193,6 +200,7 @@ public class ClaimRent extends BoughtTransaction
 					sign.getBlockY() + ", Z: " + sign.getBlockZ() + "]" + ChatColor.AQUA + " is now over, your access has been revoked.");
 		}
 		buyer = null;
+		friends = new ArrayList<>();
 
 		RealEstate.transactionsStore.saveData();
 		update();
@@ -358,7 +366,37 @@ public class ClaimRent extends BoughtTransaction
             		claimType + "!");
             return;
 		}
-		if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax)
+		if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax+5 && player.hasPermission("realestate.extrarental.five"))
+		{ // doesnt exceed rental limit
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
+					RealEstate.instance.config.cfgRentMax+5 + " plots!");
+			return;
+		}
+		else if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax+4 && player.hasPermission("realestate.extrarental.four"))
+		{ // doesnt exceed rental limit
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
+					RealEstate.instance.config.cfgRentMax+4 + " plots!");
+			return;
+		}
+		else if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax+3 && player.hasPermission("realestate.extrarental.three"))
+		{ // doesnt exceed rental limit
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
+					RealEstate.instance.config.cfgRentMax+3 + " plots!");
+			return;
+		}
+		else if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax+2 && player.hasPermission("realestate.extrarental.two"))
+		{ // doesnt exceed rental limit
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
+					RealEstate.instance.config.cfgRentMax+2 + " plots!");
+			return;
+		}
+		else if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax+1 && player.hasPermission("realestate.extrarental.one"))
+		{ // doesnt exceed rental limit
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
+					RealEstate.instance.config.cfgRentMax+1 + " plots!");
+			return;
+		}
+		else if(RealEstate.transactionsStore.getTransactionsRentals(player) >= RealEstate.instance.config.cfgRentMax)
 		{ // doesnt exceed rental limit
 			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You have hit your max rentals of " +
 					RealEstate.instance.config.cfgRentMax + " plots!");

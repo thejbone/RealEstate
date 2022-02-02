@@ -1,5 +1,6 @@
 package me.EtienneDx.RealEstate.Transactions;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import me.EtienneDx.RealEstate.RealEstate;
 public abstract class BoughtTransaction extends ClaimTransaction
 {
 	public UUID buyer = null;
+	public ArrayList<UUID> friends = new ArrayList<>();
 	public ExitOffer exitOffer = null;
 	public boolean destroyedSign = false;
 	
@@ -60,6 +62,16 @@ public abstract class BoughtTransaction extends ClaimTransaction
 	public UUID getBuyer()
 	{
 		return buyer;
+	}
+
+	public void addFriend(UUID friend) {
+		this.friends.add(friend);
+	}
+
+	public void removeFriend(UUID friend) {
+		try {
+			this.friends.remove(friend);
+		} catch (Exception ignored){}
 	}
 	
 	public void setOwner(UUID newOwner)
