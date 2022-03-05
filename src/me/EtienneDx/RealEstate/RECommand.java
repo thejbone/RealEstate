@@ -2,6 +2,7 @@ package me.EtienneDx.RealEstate;
 
 import java.util.*;
 
+import com.avaje.ebeaninternal.server.core.Message;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -442,11 +443,19 @@ public class RECommand extends BaseCommand
 		else
 		{
 			try {
-				friendUUID = Bukkit.getOfflinePlayer(friend).getUniqueId();
-				if(!Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore()){
+				friendUUID = Bukkit.getPlayer(friend).getUniqueId();
+				if(friendUUID == null){
+					friendUUID = Bukkit.getOfflinePlayer(friend).getUniqueId();
+				}
+				if(friendUUID == null){
 					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+					return;
 				}
 			} catch (Exception ignored){}
+			if(friendUUID == null){
+				Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+				return;
+			}
 			if(cr.buyer.equals(friendUUID)) {
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You cant untrust yourself!");
 				return;
@@ -454,7 +463,7 @@ public class RECommand extends BaseCommand
 			if(cr.friends.contains(friendUUID)){
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This user is already trusted!");
 			} else {
-				if(cr.buyer.equals(player.getUniqueId()) && Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore())
+				if(cr.buyer.equals(player.getUniqueId()) && friendUUID != null)
 				{
 					cr.addFriend(friendUUID);
 					claim.addUserTrust(friendUUID, TrustTypes.BUILDER);
@@ -498,11 +507,19 @@ public class RECommand extends BaseCommand
 		else
 		{
 			try {
-				friendUUID = Bukkit.getOfflinePlayer(friend).getUniqueId();
-				if(!Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore()){
+				friendUUID = Bukkit.getPlayer(friend).getUniqueId();
+				if(friendUUID == null){
+					friendUUID = Bukkit.getOfflinePlayer(friend).getUniqueId();
+				}
+				if(friendUUID == null){
 					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+					return;
 				}
 			} catch (Exception ignored){}
+			if(friendUUID == null){
+				Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
+				return;
+			}
 			if(cr.buyer.equals(friendUUID)) {
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "You cant untrust yourself!");
 				return;
@@ -510,7 +527,7 @@ public class RECommand extends BaseCommand
 			if(!cr.friends.contains(friendUUID)){
 				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "This user is already untrusted!");
 			} else {
-				if(cr.buyer.equals(player.getUniqueId()) && Bukkit.getOfflinePlayer(friendUUID).hasPlayedBefore())
+				if(cr.buyer.equals(player.getUniqueId()) && friendUUID != null)
 				{
 					cr.removeFriend(friendUUID);
 					claim.removeUserTrust(friendUUID, TrustTypes.BUILDER);
@@ -519,6 +536,29 @@ public class RECommand extends BaseCommand
 				} else {
 					Messages.sendMessage(player, RealEstate.instance.messages.msgRentTrustNoUser);
 				}
+			}
+		}
+	}
+	@Subcommand("exitrental")
+	@Description("Allows the player to exit their rental")
+	@Conditions("partOfRent")
+	public static void rentalEnd(Player player)
+	{
+		Location loc = player.getLocation();
+		final Claim claim = GriefDefender.getCore().getClaimAt(loc);
+		ClaimRent cr = (ClaimRent)RealEstate.transactionsStore.getTransaction(claim);
+		if(!cr.buyer.equals(player.getUniqueId()))
+		{
+			player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + "Only the buyer may change this setting!");
+			return;
+		}
+		else
+		{
+			if(cr.buyer.equals(player.getUniqueId()))
+			{
+				cr.endRent();
+				RealEstate.transactionsStore.saveData();
+				Messages.sendMessage(player, RealEstate.instance.messages.msgRentalEnded);
 			}
 		}
 	}

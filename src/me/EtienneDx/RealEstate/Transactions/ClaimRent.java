@@ -185,6 +185,10 @@ public class ClaimRent extends BoughtTransaction
 		
 	}
 
+	public void endRent(){
+		unRent(true);
+	}
+
 	private void unRent(boolean msgBuyer)
 	{
 		final Claim claim = GriefDefender.getCore().getClaimAt(insideBlock);
