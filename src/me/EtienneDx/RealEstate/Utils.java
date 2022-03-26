@@ -168,8 +168,12 @@ public class Utils
 	
 	public static String getSignString(String str)
 	{
-		if(str.length() > 16)
-			str = str.substring(0, 16);
+		if(str != null){
+			if(str.length() > 16)
+				str = str.substring(0, 16);
+		} else {
+			return "Invalid";
+		}
 		return str;
 	}
 }

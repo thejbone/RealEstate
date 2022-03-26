@@ -349,6 +349,40 @@ public class ClaimRent extends BoughtTransaction
             		claimType + "s!");
             return;
 		}
+
+		if(RealEstate.instance.config.isCfgPriceBrackets){
+			if(RealEstate.instance.config.cfgPriceBracket1 > 0 &&
+					price > RealEstate.instance.config.cfgPriceBracket1 &&
+					!player.hasPermission("realestate.pricebracket.one")){
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + RealEstate.instance.config.cfgPriceBracket1Msg);
+				return;
+			}
+			if(RealEstate.instance.config.cfgPriceBracket2 > 0 &&
+					price > RealEstate.instance.config.cfgPriceBracket2 &&
+					!player.hasPermission("realestate.pricebracket.two")){
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + RealEstate.instance.config.cfgPriceBracket2Msg);
+				return;
+			}
+			if(RealEstate.instance.config.cfgPriceBracket3 > 0 &&
+					price > RealEstate.instance.config.cfgPriceBracket3 &&
+					!player.hasPermission("realestate.pricebracket.three")){
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + RealEstate.instance.config.cfgPriceBracket3Msg);
+				return;
+			}
+			if(RealEstate.instance.config.cfgPriceBracket4 > 0 &&
+					price > RealEstate.instance.config.cfgPriceBracket4 &&
+					!player.hasPermission("realestate.pricebracket.four")){
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + RealEstate.instance.config.cfgPriceBracket4Msg);
+				return;
+			}
+			if(RealEstate.instance.config.cfgPriceBracket5 > 0 &&
+					price > RealEstate.instance.config.cfgPriceBracket5 &&
+					!player.hasPermission("realestate.pricebracket.five")){
+				player.sendMessage(RealEstate.instance.config.chatPrefix + ChatColor.RED + RealEstate.instance.config.cfgPriceBracket5Msg);
+				return;
+			}
+		}
+
 		if(player.getUniqueId().equals(buyer))
 		{
 			if(!RealEstate.instance.config.cfgEnableAutoRenew)

@@ -94,6 +94,28 @@ public class Config extends AnnotationConfig
     public boolean cfgCuboidPerBlockCost = true;
     @ConfigField(name="RealEstate.Default.MaxRentals", comment = "What is the max rentals?")
     public int cfgRentMax = 2;
+    @ConfigField(name="RealEstate.Default.PriceBrackets", comment="Should there be price brackets?")
+    public boolean isCfgPriceBrackets = true;
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket1", comment="What is the price bracket one? realestate.pricebracket.one")
+    public double cfgPriceBracket1 = 1000;
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket1Msg", comment="What should the comment be for price bracket one?")
+    public String cfgPriceBracket1Msg = "You do not have access to rent in price bracket one";
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket2", comment="What is the price bracket two? realestate.pricebracket.two")
+    public double cfgPriceBracket2= 10000;
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket2Msg", comment="What should the comment be for price bracket three?")
+    public String cfgPriceBracket2Msg = "You do not have access to rent in price bracket three";
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket3", comment="What is the price bracket three? realestate.pricebracket.three")
+    public double cfgPriceBracket3 = 100000;
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket3Msg", comment="What should the comment be for price bracket four?")
+    public String cfgPriceBracket3Msg = "You do not have access to rent in price bracket four";
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket4", comment="What is the price bracket four? realestate.pricebracket.four")
+    public double cfgPriceBracket4 = 1000000;
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket4Msg", comment="What should the comment be for price bracket five?")
+    public String cfgPriceBracket4Msg = "You do not have access to rent in price bracket five";
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket5", comment="What is the price bracket five? realestate.pricebracket.five")
+    public double cfgPriceBracket5 = 10000000;
+    @ConfigField(name="RealEstate.Default.cfgPriceBracket5Msg", comment="What should the comment be for price bracket five?")
+    public String cfgPriceBracket5Msg = "You do not have access to rent in price bracket five";
 
     @ConfigField(name="RealEstate.Default.Duration.Rent", comment = "How long is a rent period by default")
     public String cfgRentTime = "7D";
